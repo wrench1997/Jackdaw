@@ -1,0 +1,54 @@
+{
+  "name": "simple-headless-chrome",
+  "version": "4.3.10",
+  "description": "Headless Chrome abstraction to simplify the interaction with the browser. It may be used for crawling sites, test automation, etc",
+  "main": "glint_meson.js",
+  "scripts": {},
+  "keywords": [
+    "headless",
+    "chrome",
+    "chromium",
+    "headless-browser",
+    "phantom-js",
+    "nightmare",
+    "casper",
+    "horseman",
+    "crawler",
+    "test-automation",
+    "browser",
+    "node",
+    "browser"
+  ],
+  "author": "Wrench",
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.8.11",
+    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "async-mutex": "^0.4.0",
+    "axios": "^1.4.0",
+    "babel-polyfill": "^6.26.0",
+    "bluebird": "^3.5.0",
+    "chrome-launcher": "^0.15.1",
+    "chrome-remote-interface": "^0.32.2",
+    "cluster": "^0.7.7",
+    "cssesc": "^1.0.0",
+    "deepmerge": "^1.5.0",
+    "events": "^3.3.0",
+    "grpc": "^1.24.11",
+    "html-to-ast": "^0.0.6",
+    "lodash": "^4.17.21",
+    "mz": "^2.7.0",
+    "net": "^1.0.2",
+    "node-libs-browser": "^2.2.1"
+  },
+  "devDependencies": {
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "rollup": "^3.20.6",
+    "webpack": "^5.82.0",
+    "webpack-cli": "^5.1.1",
+    "webpack-node-externals": "^3.0.0"
+  }
+}

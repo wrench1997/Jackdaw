@@ -1,0 +1,17 @@
+{
+    "apps": [
+        {
+            "name": "glint_meson",
+            "script": "glint_meson.js",
+            "cwd": "/usr/local/863/Jackdaw",
+            "instances": 1,
+            "error_file": "./logs/error.log",
+            "out_file": "./logs/out.log",
+            "log_date_format": "YYYY-MM-DD HH:mm Z",
+            "autorestart": true,
+            "max_memory_restart": "4G",
+            "exec_mode": "fork",
+            "log_rotate_interval": 1
+        }
+    ]
+}

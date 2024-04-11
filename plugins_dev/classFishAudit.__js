@@ -1,0 +1,112 @@
+
+const { CoreLayer, createReport, browerHttpJob } = require('../core/core.js')
+
+
+
+
+class classFishAudit extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj);
+    }
+
+    async startTesting() {
+        if (this.variations.length != 0 && this.method == "POST") {
+            //console.log(`url: ${this.url} method: ${this.method} postdata:${this.postData}`);
+            for (var i = 0; i < this.variations.length; i++) {
+                let report = await this.attack(i);
+            }
+        }
+    }
+
+
+    async try_credentials(username, password) {
+        var lastJob = new browerHttpJob(this.browser);
+        lastJob.method = "POST";
+        lastJob.url = newUrl;
+        lastJob.uri = "/j_security_check";
+        lastJob.addHeader('Content-type', 'application/x-www-form-urlencoded', true);
+        lastJob.postData = "j_username=" + username + "&j_password=" + password + "&loginButton=Login";
+        lastJob.execute();
+        if (lastJob.responseStatus == 302 && lastJob.response.headerValue('Set-Cookie') && lastJob.response.headerValue('Set-Cookie').indexOf("JSESSIONID") != -1) {
+            return true;
+        }
+        return false;
+    }
+
+
+    async try_glassfish_auth_bypass() {
+        // newUrl = scanURL;
+        // newUrl.port = 4848;
+
+        var lastJob = new browerHttpJob(this.browser);
+        // lastJob.addCookies = false;
+        // lastJob.timeout = 10000;
+        lastJob.retries = 0;
+        lastJob.method = "get";
+        lastJob.url = this.url;
+        lastJob.uri = "/applications/upload.jsf";
+
+
+        if (lastJob.responseStatus == 200 && lastJob.response.body.indexOf("<title>Deploy Enterprise Applications/Modules") != -1) {
+            alert('GlassFish_Auth_Bypass.xml', lastJob);
+        }
+        else {
+            var lastJob = new THTTPJob();
+            lastJob.method = "get";
+            lastJob.url = this.url;
+            lastJob.uri = "/common/applications/uploadFrame.jsf";
+
+            lastJob.execute();
+            if (lastJob.responseStatus == 200 && lastJob.response.body.indexOf("<title>Deploy Applications or Modules") != -1) {
+                //alert('GlassFish_Auth_Bypass.xml', lastJob);
+
+                const msg = { url: this.url, body: element, payload: lastJob.uri, vuln: this.getVulnId(__filename), level: "h" } //
+                this.alert(createReport(msg));
+
+            }
+        }
+    }
+    async try_common_credentials() {
+        username = "admin";
+        for (var i = 0; i < Passwords.length; i++) {
+            password = Passwords[i];
+            if (try_credentials(username, password)) {
+                alert('GlassFish_Weak_Credentials.xml', lastJob, username, password);
+            }
+        }
+    }
+
+
+
+    async GlassFishIsDetected(index) {
+        lastJob = new browerHttpJob(browser);
+        // this.newUrl = this.url;
+        // this.newUrl.port = 4848;
+        lastJob.verb = 'GET';
+        lastJob.addCookies = false;
+        lastJob.url = this.url;
+        lastJob.uri = '/common/index.jsf';
+        lastJob.timeout = 10000;
+        lastJob.retries = 0;
+        await lastJob.execute();
+
+        if (lastJob.responseStatus == 302 && lastJob.response.headerValue('Location') && lastJob.response.headerValue('Location').indexOf('login.jsf') != -1) {
+            return true;
+        }
+
+        return false;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+module.exports = classFishAudit
+

