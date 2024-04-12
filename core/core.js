@@ -385,8 +385,11 @@ class browerHttpJob {
                 isEncodeUrl: false,
             }
             var ret = await this.tab.getEx(httprqueset);
-            this.response = { body: ret.body, headers: ret.headers, responseStatus: ret.status }
-            this.responseStatus = ret.status
+            if (ret != null) {
+                this.response = { body: ret.body, headers: ret.headers, responseStatus: ret.status }
+                this.responseStatus = ret.status   
+            }
+            
             await this.tab.close()
             return ret
         }

@@ -45,8 +45,15 @@ async function main() {
 
     lastJob.url = "http://192.168.166.2/abc"
     lastJob.method = "GET"
-    lastJob.execute();
-    lastJob.waitForSelectorToLoad();
+    lastJob.headers = { "Accept": "application/json" }
+    await lastJob.execute();
+
+    lastJob.url = "http://192.168.166.2"
+    lastJob.method = "GET"
+    lastJob.headers = { "Accept": "application/json" }
+    await lastJob.execute();
+
+      
 
 }
 
