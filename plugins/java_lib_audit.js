@@ -532,15 +532,19 @@ function fileShouldBeSearched() {
 // **************************************************************************************
 function addDetectionStr(input, curStr) {
     let addStr = '';
+    
     if (input === 'filename' && !curStr.includes('filename')) addStr = 'name';
+
     if (input === 'uri' && !curStr.includes('uri')) addStr = 'uri';
+
     if (input === 'hash' && !curStr.includes('file hash')) addStr = 'hash';
+
     if (input === 'filecontent' && !curStr.includes('file content')) addStr = 'contents';
+
     if (input === 'synhash' && !curStr.includes('syntax fingerprint')) addStr = 'syntax fingerprint';
-
-
     if (curStr !== '' && addStr !== '')
         addStr = ', and ' + addStr;
+
     return curStr + addStr;
 }
 

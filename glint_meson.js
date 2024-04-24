@@ -5,6 +5,7 @@ var grpc = require('@grpc/grpc-js');
 const { emtryParams, urlencodedParams, urlGetParams, urlHelper } = require('./core/core.js');
 const { taskmanager } = require('./core/taskmanager.js');
 const cluster = require('cluster');
+const { sleep } = require('./core/core.js');
 
 const cpuNums = 4
 
@@ -157,7 +158,7 @@ function routeChat(call) {
         console.log("结束本次通讯");
         setTimeout(() => {
             isCommunicationEnded = true;
-        }, 1000);
+        }, 60000);
         //taskManagers.clearTasks();
     });
 }

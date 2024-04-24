@@ -11,7 +11,7 @@ class SpringBootTester extends CoreLayer {
         lastJob.verb = "GET"
         lastJob.URI = "/" + uri
         lastJob.addCookies = false
-        lastJob.execute()
+        await lastJob.execute()
         if (!lastJob.wasError && lastJob.response.msg2 == 200) {
             return true
         }

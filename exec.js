@@ -53,8 +53,7 @@ async function main() {
     lastJob.headers = { "Accept": "application/json" }
     await lastJob.execute();
 
-      
-
+    return;
 }
 
 main();
