@@ -26,6 +26,8 @@ async function startBrowser() {
     });
     await browser.init();
 
+
+
     return { browser};
 }
 

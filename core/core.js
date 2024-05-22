@@ -544,6 +544,100 @@ function plain2b64(plain) {
 
 
 
+class ScriptArg {
+    constructor(options = {}) {
+      this.http = {
+        request: {
+          method: options.method || 'GET',
+          uri: options.uri || '/',
+          headers: options.headers || {},
+        },
+        response: {
+          isType: (contentType) => {
+            return this.headers['content-type'].includes(contentType);
+          },
+          statusCode: options.statusCode || 0,
+          body: options.body || '',
+        },
+        hostname: options.hostname || '',
+      };
+      this.location = {
+        url: {
+          path: options.path || '/',
+        },
+      };
+      this.target = {
+        url: options.targetUrl || '',
+      };
+    }
+}
+
+
+class ScriptCore {
+    constructor(Core) {
+        this.scheme = Core.scheme;
+        this.url = Core.url;
+        this.foundVulnOnVariation = false;
+        this.browser = Core.browser;
+        this.headers = objToHeadersEntry(Core.headers);
+        this.method = Core.method;
+        this.__call = Core.__call;
+        this.debug = false;
+        this.taskid = Core.taskid;
+        this.hostid = Core.hostid;
+        this.postData = Core.postData;
+        this.variations = Core.variations;
+        this.isFile = Core.isFile;
+        this.filename = Core.filename;
+        this.fileContent = Core.fileContent;
+
+        this.scriptArg = ScriptArg()
+
+        
+        // // 創建一個互斥鎖
+        // this.mutex = new Mutex();
+    }
+
+
+        /**
+     * Returns the vulnerability ID from a given file path.
+     *
+     * @param {string} file - The file path.
+     * @return {string} The vulnerability ID extracted from the file path.
+     */
+        getVulnId(file) {
+            const parsed = path.parse(file);
+            return parsed.name.replace('.js', '');
+        }
+    
+        debug(msg) {
+            if (this.debug) {
+                console.log(`[DEBUG] ${msg}`);
+            }
+        }
+    
+        /**
+         * Copies the Report object and updates the fields.hostid property with the value of this.hostid.
+         * Sends a message containing the updated Report object using this.__call.send().
+         *
+         * @param {Object} Report - The Report object to be copied and updated.
+         */
+        alert(Report) {
+            // 複製 Report 對象
+            const updatedReport = JSON.parse(JSON.stringify(Report));
+            updatedReport.fields.hostid = {
+                numberValue: this.hostid
+            };
+            var message = {
+                Report: updatedReport
+            };
+            this.__call.send(message);
+        }
+}
+
+
+
+
 module.exports = {
     //plain2md5,
     urlHelper,
@@ -555,5 +649,8 @@ module.exports = {
     urlGetParams,
     emtryParams,
     plain2b64,
-    browerHttpJob
+    browerHttpJob,
+    ScriptArg,
+    ScriptCore,
+
 };
