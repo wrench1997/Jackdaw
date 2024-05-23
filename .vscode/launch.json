@@ -28,6 +28,8 @@
             "autoAttachChildProcesses": true,
             "env": {
                 "DEBUG": "HeadlessChrome:events:Network",
+                "HTTP_PROXY": "http://localhost:7890",
+                "HTTPS_PROXY": "http://localhost:7890",
             },
             "args":["1","2","3"]
         },
