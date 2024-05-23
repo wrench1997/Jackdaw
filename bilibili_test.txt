@@ -1,0 +1,7 @@
+curl -G 'https://api.bilibili.com/x/v2/reply/main' \
+--data-urlencode 'type=1' \
+--data-urlencode 'oid=2' \
+--data-urlencode 'mode=3' \
+--data-urlencode 'next=0' \
+--data-urlencode 'ps=5' \
+-b 'SESSDATA=9d7900c5%2C1731820711%2C441f4%2A51CjDO_rHukcnmf3ljL8Oxt2akCm8FAVBIOYNRKRTEofl-Hc-mULIUfqOyK11Or2wLtoASVkowNEFyMlpLenJrMVF4Q2NHNGRCTFFOR3VENl8yZWtjSjJSUlk5WGlYaUJsNEowZGJZZ1lUZmdXc3ZKN2NMQVJaaXZvUFBYZFdoV3NtZEEtYjdfTGV3IIEC;'

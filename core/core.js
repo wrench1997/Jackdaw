@@ -351,7 +351,7 @@ class browerHttpJob {
         if (cookieIndex >= 0) {
             this.headers[cookieIndex].value += `; ${cookieHeader}`;
         } else {
-            this.headers.push({ name: 'Cookie', value: cookieHeader });
+            this.headers.push({ name: 'Cookie', value: value });
         }
     }
     /**
@@ -360,9 +360,11 @@ class browerHttpJob {
      * @return {Promise} The promise that resolves to the result of the function execution.
      */
     async execute() {
+        // browserIsInitialized.call(this);
         this.tab = await this.browser.newTab();
-        const domain = this.url.hostname;
-        const url = this.uri ? domain + this.uri : this.url.urlStr;
+
+        // const domain = this.url.hostname;
+        const url = this.url //this.uri ? domain + this.uri : this.url.urlStr;
         if (this.method == "POST") {
             const httprqueset = {
                 url: url,
@@ -433,7 +435,7 @@ class THTTPJob {
         if (cookieIndex >= 0) {
             this.headers[cookieIndex].value += `; ${cookieHeader}`;
         } else {
-            this.headers.push({ name: 'Cookie', value: cookieHeader });
+            this.headers.push({ name: 'Cookie', value: value });
         }
     }
 
@@ -443,8 +445,8 @@ class THTTPJob {
      * @return {Promise<void>} - A promise that resolves when the request is complete.
      */
     async execute() {
-        const domain = this.url.hostname;
-        const url = this.uri ? domain + this.uri : this.url.urlStr;
+        // const domain = this.url.hostname;
+        const url = this.url //this.uri ? domain + this.uri : this.url.urlStr;
         let axiosConfig = {
             url,
             method: this.method,
