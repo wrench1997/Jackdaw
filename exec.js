@@ -88,7 +88,7 @@ async function startBrowser() {
                 "--disable-xss-auditor=true",
                 "--disable-gpu",
                 '--disable-dev-shm-usage', // <-- add this one
-                "--proxy-server=http://127.0.0.1:7777"
+                // "--proxy-server=http://127.0.0.1:7777"
             ]
         }
     });
@@ -119,22 +119,21 @@ async function main() {
     const { browser} = await startBrowser();
     const Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     // const Cookies = "PHPSESSID=ofl9dchd22r5s46qa8cs0bcanp"
-    const Referrer = "http://192.168.166.2/pikachu/"
+    const Referrer = "http://192.168.166.2/"
     const ContentType = "application/x-www-form-urlencoded"
     const UpgradeInsecureRequests = "1"
     const UserAgent = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
     const lastJob = new browerHttpJob(browser);
-
-    lastJob.url = "https://www.bilibili.com/video/BV1qy411a7KQ/?spm_id_from=333.1007.tianma.1-1-1.click&vd_source=c43efe34a58093c435518f5cf99e14ac"
+    lastJob.url = "http://192.168.166.2"
     lastJob.method = "GET"
     // lastJob.addCookie()
     // lastJob.headers = {"Accept":Accept,"User-Agent":UserAgent}
-    lastJob.addCookie("cookie",Cookies)
+    // lastJob.addCookie("cookie",Cookies)
     lastJob.addHeader("UserAgent",UserAgent)
     lastJob.isEncodeUrl = false
     await lastJob.execute();
 
-    await runChat("请列出下列内容的评论: " + lastJob.response.body[0]);
+    await runChat("请列出具有下列dom渲染的标签: " + lastJob.response.body[0]);
 
 
     return;
