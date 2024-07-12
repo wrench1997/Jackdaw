@@ -293,7 +293,11 @@ class CoreLayer {
         var message = {
             Report: updatedReport
         };
-        this.__call.send(message);
+        if (this.__call)
+            this.__call.send(message);
+        else {
+            console.log(`Sending message: ${JSON.stringify(message)}`);
+        }
     }
 
 }
