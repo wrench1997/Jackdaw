@@ -62,6 +62,9 @@ class DOMXSSDetector extends CoreLayer {
         
         // 构造不同类型的payload
         this.payloads = this.generatePayloads();
+        
+        // 添加一个标志，用于跟踪是否已经发现漏洞
+        this.vulnerabilityFound = false;
     }
 
     /**
@@ -132,6 +135,11 @@ class DOMXSSDetector extends CoreLayer {
     async checkDOMXSS(url, params) {
         const results = [];
         
+        // 如果已经发现漏洞，直接返回空结果
+        if (this.vulnerabilityFound) {
+            return results;
+        }
+        
         // 为每个参数尝试不同的payload
         for (let i = 0; i < params.length; i++) {
             const param = params[i];
@@ -139,9 +147,19 @@ class DOMXSSDetector extends CoreLayer {
             
             // 为每个接收点类型尝试不同的payload
             for (const sinkCategory of ['js', 'html', 'url', 'event']) {
+                // 如果已经发现漏洞，跳出循环
+                if (this.vulnerabilityFound) {
+                    break;
+                }
+                
                 const payloads = this.payloads[sinkCategory];
                 
                 for (const payload of payloads) {
+                    // 如果已经发现漏洞，跳出循环
+                    if (this.vulnerabilityFound) {
+                        break;
+                    }
+                    
                     // 设置payload
                     param.value = payload;
                     
@@ -155,6 +173,10 @@ class DOMXSSDetector extends CoreLayer {
                             sink: result.sink,
                             category: sinkCategory
                         });
+                        
+                        // 设置标志，表示已经发现漏洞
+                        this.vulnerabilityFound = true;
+                        break; // 找到漏洞后立即跳出循环
                     }
                     
                     // 恢复原始值
@@ -240,6 +262,11 @@ class DOMXSSDetector extends CoreLayer {
      */
     async detect() {
         try {
+            // 如果已经发现漏洞，直接返回
+            if (this.vulnerabilityFound) {
+                return;
+            }
+            
             // 解析URL
             const urlObj = new URL(this.url);
             
@@ -343,16 +370,17 @@ class DOMXSSDetector extends CoreLayer {
         });
     }
 
-
-
-
-
     /**
      * 高级DOM XSS检测
      * @returns {Promise<void>}
      */
     async advancedDetect() {
         try {
+            // 如果已经发现漏洞，直接返回
+            if (this.vulnerabilityFound) {
+                return;
+            }
+            
             // 创建一个新的浏览器标签页
             const tab = await this.browser.newTab();
             
@@ -384,16 +412,21 @@ class DOMXSSDetector extends CoreLayer {
                     });
                     
                     this.alert(report);
+                    
+                    // 设置标志，表示已经发现漏洞
+                    this.vulnerabilityFound = true;
+                    return; // 找到漏洞后立即返回
                 }
             }
             
-            // 进行主动测试
-            await this.activeDetection();
+            // 如果没有发现漏洞，进行主动测试
+            if (!this.vulnerabilityFound) {
+                await this.activeDetection();
+            }
         } catch (error) {
             console.error(`[${this.name}] Error:`, error);
         }
     }
-
 
     // 触发DOM事件
     async triggerEvents(tab, timeout = 5000) {
@@ -472,9 +505,6 @@ class DOMXSSDetector extends CoreLayer {
         }
     }
 
-
-
-
     async setupDialogHandler(tab) {
         // 启用Page域以接收JavaScript对话框事件
         await tab.client.Page.enable();
@@ -490,13 +520,17 @@ class DOMXSSDetector extends CoreLayer {
         });
     }
 
- 
     /**
      * 主动DOM XSS检测
      * @returns {Promise<void>}
      */
     async activeDetection() {
         try {
+            // 如果已经发现漏洞，直接返回
+            if (this.vulnerabilityFound) {
+                return;
+            }
+            
             // 解析URL
             const urlObj = new URL(this.url);
             
@@ -519,10 +553,19 @@ class DOMXSSDetector extends CoreLayer {
             
             // 为每个参数尝试不同的payload
             for (const param of params) {
+                // 如果已经发现漏洞，跳出循环
+                if (this.vulnerabilityFound) {
+                    break;
+                }
+                
                 const originalValue = param.value;
                 
                 // 为每个接收点类型尝试不同的payload
                 for (const sink of this.sinks) {
+                    // 如果已经发现漏洞，跳出循环
+                    if (this.vulnerabilityFound) {
+                        break;
+                    }
 
                     const payload = this.getPayloadForSink(sink);
                     
@@ -538,7 +581,6 @@ class DOMXSSDetector extends CoreLayer {
                     await this.setupDialogHandler(tab);
 
                     try {
-
                         // 导航到测试URL
                         await tab.goTo(testUrl);
                     
@@ -548,8 +590,6 @@ class DOMXSSDetector extends CoreLayer {
                     } catch (error) {
                         console.error(`[${this.name}] Error:`, error);
                     } finally {
-
-
                         // 检查是否存在我们的标识符
                         const hasIdentifier = await tab.evaluate((identifier) => {
                             // 检查是否有元素包含我们的标识符
@@ -571,7 +611,6 @@ class DOMXSSDetector extends CoreLayer {
                             return { found: false };
                         }, this.identifier);
                     
-
                         // 如果找到漏洞，报告结果
                         if (hasIdentifier.result.value.found) {
                             const report = createReport({
@@ -587,14 +626,24 @@ class DOMXSSDetector extends CoreLayer {
                             });
                             
                             this.alert(report);
+                            
+                            // 设置标志，表示已经发现漏洞
+                            this.vulnerabilityFound = true;
                         }
                         
                         // 确保标签页被关闭
                         await tab.close();
-        
+                        
+                        // 如果已经发现漏洞，跳出循环
+                        if (this.vulnerabilityFound) {
+                            break;
+                        }
                     }
-
-
+                }
+                
+                // 如果已经发现漏洞，跳出循环
+                if (this.vulnerabilityFound) {
+                    break;
                 }
             }
         } catch (error) {
