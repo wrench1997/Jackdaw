@@ -7,6 +7,20 @@
         {
             "type": "pwa-node",
             "request": "launch",
+            "name": "test_dom_xss", 
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/test_dom_xss.js",
+            "autoAttachChildProcesses": true,
+            "env": {
+                "DEBUG": "HeadlessChrome:events:Network",
+            }
+        },
+
+        {
+            "type": "pwa-node",
+            "request": "launch",
             "name": "Launch Program", 
             "skipFiles": [
                 "<node_internals>/**"

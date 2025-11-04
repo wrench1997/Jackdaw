@@ -44,6 +44,7 @@
     "mz": "^2.7.0",
     "net": "^1.0.2",
     "node-libs-browser": "^2.2.1",
+    "puppeteer": "^24.26.1",
     "undici": "^6.18.1"
   },
   "devDependencies": {
