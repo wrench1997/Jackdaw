@@ -437,32 +437,24 @@ class DOMXSSDetector extends CoreLayer {
      */
     async injectDetectorScript(tab) {
         // 读取DOM XSS检测器脚本
-        const detectorScript = fs.readFileSync(path.join(__dirname, '../dom_xss_detector.js'), 'utf8');
+        const detectorScript = fs.readFileSync(path.join(__dirname, './dom_xss_detector.js'), 'utf8');
         
         // 注入脚本
-        await tab.evaluate((script) => {
-            try {
-                // 创建一个自定义回调函数，用于接收检测结果
-                window.xssReportCallback = function(results) {
-                    window.domXssResults = results;
-                    document.documentElement.setAttribute('data-xss-detector-loaded', 'true');
-                };
+        await tab.evaluate((script, identifier) => {
+            // 创建一个自定义回调函数，用于接收检测结果
+            window.xssReportCallback = function(results) {
+                // 将结果存储在window对象上，以便后续检索
+                window.domXssResults = results;
                 
-                // 创建脚本元素并添加到页面
-                const scriptElement = document.createElement('script');
-                scriptElement.textContent = script;
-                document.head.appendChild(scriptElement);
-                
-                console.log("DOM XSS 检测器已成功加载");
-                return true;
-            } catch (e) {
-                console.error("DOM XSS 检测器加载失败:", e.message);
-                return false;
-            }
-        }, detectorScript);
-        
-        // 等待脚本加载完成
-        await tab.waitForSelectorToLoad('[data-xss-detector-loaded="true"]', 500, 5000);
+                // 添加自定义标识符
+                document.documentElement.setAttribute('data-xss-detector', identifier);
+            };
+            
+            // 创建脚本元素并添加到页面
+            const scriptElement = document.createElement('script');
+            scriptElement.textContent = script;
+            document.head.appendChild(scriptElement);
+        }, detectorScript, this.identifier);
     }
 
     /**

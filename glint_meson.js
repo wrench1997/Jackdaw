@@ -240,7 +240,7 @@ async function main() {
         const HeadlessChrome = require('./lib/Browser.js')
 
         const browser = new HeadlessChrome({
-            headless: true,
+            headless: false,
             chrome: {
                 flags: [
                     '--disable-web-security',

@@ -205,8 +205,13 @@
             // 检查 URL 参数
             this.checkURLParameters();
             
-            // 检查 localStorage 和 sessionStorage
-            this.checkStorage();
+            try {
+                // 检查 localStorage 和 sessionStorage
+                this.checkStorage();
+            } catch (storageError) {
+                console.warn("[DOM XSS Detector] 存储API检查失败:", storageError.message);
+            }
+            
             
             // 检查原型污染
             this.checkPrototypePollution();
