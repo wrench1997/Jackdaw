@@ -1,92 +1,12 @@
-const { CoreLayer, createReport, browerHttpJob } = require('./core/core.js');
+// plugins/dom_xss_scanner.js
+const { CoreLayer, createReport, browerHttpJob } = require('../core/core.js');
 const fs = require('fs');
 const path = require('path');
 
-
-/**
- * 检查网站是否可访问
- * @param {string} url - 要检查的URL
- * @param {number} timeout - 超时时间(毫秒)
- * @return {Promise<boolean>} - 网站是否可访问
- */
-async function isWebsiteAccessible(url, timeout = 5000) {
-    try {
-      const job = new browerHttpJob(this.browser);
-      job.url = url;
-      job.method = "HEAD"; // 使用HEAD请求减少数据传输
-      
-      // 设置超时
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      const response = await job.execute();
-      clearTimeout(timeoutId);
-      
-      return response && response.status >= 200 && response.status < 400;
-    } catch (error) {
-      console.error(`网站访问检查失败: ${url}`, error.message);
-      return false;
-    }
-  }
-
-
-  /**
- * 带有限流和重试机制的请求函数
- * @param {string} url - 请求URL
- * @param {Object} options - 请求选项
- * @param {number} maxRetries - 最大重试次数
- * @param {number} retryDelay - 重试延迟(毫秒)
- * @return {Promise<Object>} - 响应结果
- */
-async function requestWithRetry(url, options = {}, maxRetries = 3, retryDelay = 1000) {
-    // 首先检查网站是否可访问
-    const isAccessible = await isWebsiteAccessible(url);
-    if (!isAccessible) {
-      console.log(`网站 ${url} 不可访问，跳过请求`);
-      return null;
-    }
-    
-    let lastError;
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        const job = new browerHttpJob(this.browser);
-        job.url = url;
-        job.method = options.method || "GET";
-        
-        // 添加请求头
-        if (options.headers) {
-          for (const [name, value] of Object.entries(options.headers)) {
-            job.addHeader(name, value);
-          }
-        }
-        
-        // 设置POST数据
-        if (options.method === "POST" && options.postData) {
-          job.postData = options.postData;
-        }
-        
-        const response = await job.execute();
-        return response;
-      } catch (error) {
-        lastError = error;
-        console.warn(`请求失败(${i+1}/${maxRetries}): ${url}`, error.message);
-        
-        if (i < maxRetries - 1) {
-          // 等待一段时间后重试
-          await sleep(retryDelay);
-        }
-      }
-    }
-    
-    throw lastError;
-  }
-
-
-
-class DOMXSSDetector extends CoreLayer {
+class DOMXSSScanner extends CoreLayer {
     constructor(Core) {
         super(Core);
-        this.name = "DOM XSS Detector";
+        this.name = "DOM XSS Scanner";
         this.vulnid = this.getVulnId(__filename);
         
         // 定义DOM XSS的源列表
@@ -184,6 +104,32 @@ class DOMXSSDetector extends CoreLayer {
     }
 
     /**
+     * 检查网站是否可访问
+     * @param {string} url - 要检查的URL
+     * @param {number} timeout - 超时时间(毫秒)
+     * @return {Promise<boolean>} - 网站是否可访问
+     */
+    async isWebsiteAccessible(url, timeout = 5000) {
+        try {
+            const job = new browerHttpJob(this.browser);
+            job.url = url;
+            job.method = "HEAD"; // 使用HEAD请求减少数据传输
+            
+            // 设置超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            const response = await job.execute();
+            clearTimeout(timeoutId);
+            
+            return response && response.status >= 200 && response.status < 400;
+        } catch (error) {
+            console.error(`网站访问检查失败: ${url}`, error.message);
+            return false;
+        }
+    }
+
+    /**
      * 获取适合特定接收点的payload
      * @param {Object} sink - 接收点对象
      * @returns {string} 适合该接收点的payload
@@ -208,229 +154,6 @@ class DOMXSSDetector extends CoreLayer {
     }
 
     /**
-     * 检查DOM XSS漏洞
-     * @param {string} url - 要检测的URL
-     * @param {Object} params - 请求参数
-     * @returns {Promise<Object>} 检测结果
-     */
-    async checkDOMXSS(url, params) {
-        const results = [];
-        
-        // 如果已经发现漏洞，直接返回空结果
-        if (this.vulnerabilityFound) {
-            return results;
-        }
-        
-        // 为每个参数尝试不同的payload
-        for (let i = 0; i < params.length; i++) {
-            const param = params[i];
-            const originalValue = param.value;
-            
-            // 为每个接收点类型尝试不同的payload
-            for (const sinkCategory of ['js', 'html', 'url', 'event']) {
-                // 如果已经发现漏洞，跳出循环
-                if (this.vulnerabilityFound) {
-                    break;
-                }
-                
-                const payloads = this.payloads[sinkCategory];
-                
-                for (const payload of payloads) {
-                    // 如果已经发现漏洞，跳出循环
-                    if (this.vulnerabilityFound) {
-                        break;
-                    }
-                    
-                    // 设置payload
-                    param.value = payload;
-                    
-                    // 发送请求并检查响应
-                    const result = await this.sendRequest(url, params);
-                    
-                    if (result.vulnerable) {
-                        results.push({
-                            param: param.name,
-                            payload: payload,
-                            sink: result.sink,
-                            category: sinkCategory
-                        });
-                        
-                        // 设置标志，表示已经发现漏洞
-                        this.vulnerabilityFound = true;
-                        break; // 找到漏洞后立即跳出循环
-                    }
-                    
-                    // 恢复原始值
-                    param.value = originalValue;
-                }
-            }
-        }
-        
-        return results;
-    }
-
-    /**
-     * 发送请求并检查响应中是否存在DOM XSS漏洞
-     * @param {string} url - 要检测的URL
-     * @param {Array} params - 请求参数
-     * @returns {Promise<Object>} 检测结果
-     */
-    async sendRequest(url, params) {
-    // 检查网站是否存在
-    const isAccessible = await isWebsiteAccessible(url);
-    if (!isAccessible) {
-        console.log(`网站 ${url} 不可访问，跳过请求`);
-        return { vulnerable: false };
-    }
-    
-    // 创建浏览器HTTP请求
-    const job = new browerHttpJob(this.browser);
-    job.url = url;
-    job.method = "GET";
-    
-    // 添加请求头
-    for (const header of this.headers) {
-        job.addHeader(header.name, header.value);
-    }
-    
-    // 执行请求
-    const response = await job.execute();
-    
-    if (!response || !response.body) {
-        return { vulnerable: false };
-    }
-    
-    // 检查响应中是否存在我们的标识符
-    const hasIdentifier = await this.checkResponseForIdentifier(response.body);
-    
-    // 确保只有在真正验证到标识符时才报告漏洞
-    if (hasIdentifier && hasIdentifier.found === true) {
-        return {
-        vulnerable: true,
-        sink: hasIdentifier.sink
-        };
-    }
-
-    return { vulnerable: false };
-    }
-
-    /**
-     * 检查响应中是否存在我们的标识符
-     * @param {string} responseBody - 响应体
-     * @returns {Promise<Object>} 检测结果
-     */
-    async checkResponseForIdentifier(responseBody) {
-        // 创建一个新的浏览器标签页
-        const tab = await this.browser.newTab();
-        
-        // 设置HTML内容
-        await tab.setContent(responseBody);
-        
-        // 检查是否存在我们的标识符
-        const result = await tab.evaluate((identifier) => {
-            // 检查是否有元素包含我们的标识符
-            const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
-            if (elements.length > 0) {
-                return { found: true, sink: 'element.attribute' };
-            }
-            
-            // 检查document.documentElement是否有我们的标识符
-            if (document.documentElement.getAttribute('data-xss-found') === identifier) {
-                return { found: true, sink: 'document.documentElement' };
-            }
-            
-            // 检查HTML中是否包含我们的标识符 - 这一步可能导致误报，应该移除或修改
-            // if (document.documentElement.innerHTML.includes(identifier)) {
-            //     return { found: true, sink: 'document.innerHTML' };
-            // }
-            
-            return { found: false };
-        }, this.identifier);
-        
-        // 关闭标签页
-        await tab.close();
-        
-        return result;
-    }
-
-    /**
-     * 检测URL中的DOM XSS漏洞
-     * @param {string} url - 要检测的URL
-     * @returns {Promise<void>}
-     */
-    async detect() {
-        try {
-            // 如果已经发现漏洞，直接返回
-            if (this.vulnerabilityFound) {
-                return;
-            }
-            
-            // 解析URL
-            const urlObj = new URL(this.url);
-            
-            // 获取URL参数
-            const searchParams = new URLSearchParams(urlObj.search);
-            const params = [];
-            
-            // 将URL参数转换为数组
-            for (const [name, value] of searchParams.entries()) {
-                params.push({ name, value });
-            }
-            
-            // 如果没有参数，添加一些常见参数进行测试
-            if (params.length === 0) {
-                params.push({ name: 'q', value: 'test' });
-                params.push({ name: 'search', value: 'test' });
-                params.push({ name: 'id', value: '1' });
-                params.push({ name: 'name', value: 'test' });
-            }
-            
-            // 检查DOM XSS漏洞
-            const results = await this.checkDOMXSS(this.url, params);
-            
-            // 报告结果
-            if (results.length > 0) {
-                for (const result of results) {
-                    const report = createReport({
-                        vulnid: this.vulnid,
-                        taskid: this.taskid,
-                        url: this.url,
-                        param: result.param,
-                        payload: result.payload,
-                        sink: result.sink,
-                        category: result.category,
-                        severity: this.getSeverity(result.category),
-                        details: `DOM XSS vulnerability found in parameter '${result.param}' with payload '${result.payload}'. The payload was executed in the '${result.sink}' sink.`
-                    });
-                    
-                    this.alert(report);
-                }
-            }
-        } catch (error) {
-            console.error(`[${this.name}] Error:`, error);
-        }
-    }
-
-    /**
-     * 根据接收点类别获取漏洞严重性
-     * @param {string} category - 接收点类别
-     * @returns {string} 严重性级别
-     */
-    getSeverity(category) {
-        switch (category) {
-            case 'js':
-                return 'High';
-            case 'html':
-                return 'Medium';
-            case 'url':
-            case 'event':
-                return 'Low';
-            default:
-                return 'Medium';
-        }
-    }
-
-    /**
      * 注入DOM XSS检测脚本
      * @param {Object} tab - 浏览器标签页
      * @returns {Promise<void>}
@@ -440,29 +163,21 @@ class DOMXSSDetector extends CoreLayer {
         const detectorScript = fs.readFileSync(path.join(__dirname, '../dom_xss_detector.js'), 'utf8');
         
         // 注入脚本
-        await tab.evaluate((script) => {
-            try {
-                // 创建一个自定义回调函数，用于接收检测结果
-                window.xssReportCallback = function(results) {
-                    window.domXssResults = results;
-                    document.documentElement.setAttribute('data-xss-detector-loaded', 'true');
-                };
+        await tab.evaluate((script, identifier) => {
+            // 创建一个自定义回调函数，用于接收检测结果
+            window.xssReportCallback = function(results) {
+                // 将结果存储在window对象上，以便后续检索
+                window.domXssResults = results;
                 
-                // 创建脚本元素并添加到页面
-                const scriptElement = document.createElement('script');
-                scriptElement.textContent = script;
-                document.head.appendChild(scriptElement);
-                
-                console.log("DOM XSS 检测器已成功加载");
-                return true;
-            } catch (e) {
-                console.error("DOM XSS 检测器加载失败:", e.message);
-                return false;
-            }
-        }, detectorScript);
-        
-        // 等待脚本加载完成
-        await tab.waitForSelectorToLoad('[data-xss-detector-loaded="true"]', 500, 5000);
+                // 添加自定义标识符
+                document.documentElement.setAttribute('data-xss-detector', identifier);
+            };
+            
+            // 创建脚本元素并添加到页面
+            const scriptElement = document.createElement('script');
+            scriptElement.textContent = script;
+            document.head.appendChild(scriptElement);
+        }, detectorScript, this.identifier);
     }
 
     /**
@@ -477,66 +192,11 @@ class DOMXSSDetector extends CoreLayer {
     }
 
     /**
-     * 高级DOM XSS检测
+     * 触发DOM事件
+     * @param {Object} tab - 浏览器标签页
+     * @param {number} timeout - 超时时间(毫秒)
      * @returns {Promise<void>}
      */
-    async advancedDetect() {
-        try {
-            // 如果已经发现漏洞，直接返回
-            if (this.vulnerabilityFound) {
-                return;
-            }
-            
-            // 创建一个新的浏览器标签页
-            const tab = await this.browser.newTab();
-            
-            // 导航到目标URL
-            await tab.goTo(this.url);
-            
-            // 注入DOM XSS检测器脚本
-            await this.injectDetectorScript(tab);
-   
-            
-            // 获取检测结果
-            const results = await this.getDetectionResults(tab);
-            
-            // 关闭标签页
-            await tab.close();
-            
-            // 报告结果
-            if (results.length > 0) {
-                for (const result of results) {
-                    if (hasIdentifier && hasIdentifier.result && hasIdentifier.result.value && hasIdentifier.result.value.found) {
-                        const report = createReport({
-                            vulnid: this.vulnid,
-                            taskid: this.taskid,
-                            url: this.url,
-                            source: result.source.label,
-                            sink: result.sink.label,
-                            value: result.value,
-                            severity: result.severity,
-                            details: `DOM XSS vulnerability found. Source: '${result.source.label}', Sink: '${result.sink.label}', Value: '${result.value}'`
-                        });
-                        
-                        this.alert(report);
-                        
-                        // 设置标志，表示已经发现漏洞
-                        this.vulnerabilityFound = true;
-                        return; // 找到漏洞后立即返回
-                    }
-                }
-            }
-            
-            // 如果没有发现漏洞，进行主动测试
-            if (!this.vulnerabilityFound) {
-                await this.activeDetection();
-            }
-        } catch (error) {
-            console.error(`[${this.name}] Error:`, error);
-        }
-    }
-
-    // 触发DOM事件
     async triggerEvents(tab, timeout = 5000) {
         try {
             // 设置超时
@@ -613,13 +273,18 @@ class DOMXSSDetector extends CoreLayer {
         }
     }
 
+    /**
+     * 设置对话框处理器
+     * @param {Object} tab - 浏览器标签页
+     * @returns {Promise<void>}
+     */
     async setupDialogHandler(tab) {
         // 启用Page域以接收JavaScript对话框事件
         await tab.client.Page.enable();
         
         // 监听JavaScript对话框事件
         tab.client.Page.javascriptDialogOpening(async ({ type, message, url }) => {
-            // console.log(`对话框被拦截: ${type} - ${message}`);
+            console.log(`对话框被拦截: ${type} - ${message}`);
             
             // 自动关闭对话框
             await tab.client.Page.handleJavaScriptDialog({
@@ -640,7 +305,7 @@ class DOMXSSDetector extends CoreLayer {
             }
             
             // 解析URL
-            const urlObj = new URL(this.url);
+            const urlObj = new URL(this.url.urlStr);
             
             // 获取URL参数
             const searchParams = new URLSearchParams(urlObj.search);
@@ -685,15 +350,27 @@ class DOMXSSDetector extends CoreLayer {
                     
                     // 创建一个新的浏览器标签页
                     const tab = await this.browser.newTab();
+                    
                     // 设置对话框处理器
                     await this.setupDialogHandler(tab);
-
+                    
                     try {
                         // 导航到测试URL
                         await tab.goTo(testUrl);
-                    
+                        
+                        // 注入DOM XSS检测脚本
+                        await this.injectDetectorScript(tab);
+                        
                         // 触发DOM事件，设置1.5秒超时
                         await this.triggerEvents(tab, 1500);
+                        
+                        // 获取检测结果
+                        const detectionResults = await this.getDetectionResults(tab);
+                        
+                        
+
+
+
 
                         // 检查是否存在我们的标识符
                         const hasIdentifier = await tab.evaluate((identifier) => {
@@ -703,11 +380,6 @@ class DOMXSSDetector extends CoreLayer {
                                 return { found: true, sink: 'element.attribute' };
                             }
                             
-                            // // 检查HTML中是否包含我们的标识符
-                            // if (document.documentElement.innerHTML.includes(identifier)) {
-                            //     return { found: true, sink: 'document.innerHTML' };
-                            // }a
-                            
                             // 检查document.documentElement是否有我们的标识符
                             if (document.documentElement.getAttribute('data-xss-found') === identifier) {
                                 return { found: true, sink: 'document.documentElement' };
@@ -715,9 +387,9 @@ class DOMXSSDetector extends CoreLayer {
                             
                             return { found: false };
                         }, this.identifier);
-                    
+                        
                         // 如果找到漏洞，报告结果
-                        if (hasIdentifier.result.value.found) {
+                        if (hasIdentifier && hasIdentifier.found) {
                             const report = createReport({
                                 vulnid: this.vulnid,
                                 taskid: this.taskid,
@@ -736,22 +408,84 @@ class DOMXSSDetector extends CoreLayer {
                             this.vulnerabilityFound = true;
                         }
                         
-
+                        // 如果检测器发现了可疑漏洞，进行进一步验证
+                        if (detectionResults.length > 0 && !this.vulnerabilityFound) {
+                            for (const result of detectionResults) {
+                                // 构建验证URL，使用检测器发现的源和接收点
+                                if (result.source && result.source.label && result.sink && result.sink.label) {
+                                    // 构建验证payload
+                                    const verificationPayload = this.getPayloadForSink({
+                                        category: this.getSinkCategory(result.sink.label)
+                                    });
+                                    
+                                    // 构建验证URL
+                                    const verificationParams = new URLSearchParams(searchParams);
+                                    verificationParams.set(param.name, verificationPayload);
+                                    
+                                    const verificationUrl = `${urlObj.origin}${urlObj.pathname}?${verificationParams.toString()}`;
+                                    
+                                    // 创建一个新的标签页进行验证
+                                    const verificationTab = await this.browser.newTab();
+                                    
+                                    try {
+                                        // 导航到验证URL
+                                        await verificationTab.goTo(verificationUrl);
+                                        
+                                        // 触发DOM事件
+                                        await this.triggerEvents(verificationTab, 1500);
+                                        
+                                        // 检查是否存在我们的标识符
+                                        const verificationResult = await verificationTab.evaluate((identifier) => {
+                                            // 检查是否有元素包含我们的标识符
+                                            const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
+                                            if (elements.length > 0) {
+                                                return { found: true, sink: 'element.attribute' };
+                                            }
+                                            
+                                            // 检查document.documentElement是否有我们的标识符
+                                            if (document.documentElement.getAttribute('data-xss-found') === identifier) {
+                                                return { found: true, sink: 'document.documentElement' };
+                                            }
+                                            
+                                            return { found: false };
+                                        }, this.identifier);
+                                        
+                                        // 如果验证成功，报告结果
+                                        if (verificationResult && verificationResult.found) {
+                                            const report = createReport({
+                                                vulnid: this.vulnid,
+                                                taskid: this.taskid,
+                                                url: verificationUrl,
+                                                param: param.name,
+                                                payload: verificationPayload,
+                                                source: result.source.label,
+                                                sink: result.sink.label,
+                                                category: this.getSinkCategory(result.sink.label),
+                                                severity: result.severity || this.getSeverity(this.getSinkCategory(result.sink.label)),
+                                                details: `DOM XSS vulnerability found in parameter '${param.name}'. Source: ${result.source.label}, Sink: ${result.sink.label}`
+                                            });
+                                            
+                                            this.alert(report);
+                                            
+                                            // 设置标志，表示已经发现漏洞
+                                            this.vulnerabilityFound = true;
+                                            break;
+                                        }
+                                    } catch (error) {
+                                        console.error(`[${this.name}] Error during verification:`, error);
+                                    } finally {
+                                        // 确保验证标签页被关闭
+                                        await verificationTab.close();
+                                    }
+                                }
+                            }
+                        }
                     } catch (error) {
                         console.error(`[${this.name}] Error:`, error);
                     } finally {
                         // 确保标签页被关闭
                         await tab.close();
-                        
-                        // 如果已经发现漏洞，跳出循环
-                        if (this.vulnerabilityFound) {
-                            break;
-                        }
                     }
-                }
-                // 如果已经发现漏洞，跳出循环
-                if (this.vulnerabilityFound) {
-                    break;
                 }
             }
         } catch (error) {
@@ -760,17 +494,74 @@ class DOMXSSDetector extends CoreLayer {
     }
 
     /**
+     * 获取接收点类别
+     * @param {string} sinkLabel - 接收点标签
+     * @returns {string} 接收点类别
+     */
+    getSinkCategory(sinkLabel) {
+        // 查找接收点
+        const sink = this.sinks.find(s => s.label === sinkLabel);
+        
+        if (sink) {
+            return sink.category;
+        }
+        
+        // 根据接收点名称推断类别
+        if (sinkLabel.includes('eval') || sinkLabel.includes('Function') || 
+            sinkLabel.includes('setTimeout') || sinkLabel.includes('setInterval') || 
+            sinkLabel.includes('script')) {
+            return 'js';
+        } else if (sinkLabel.includes('innerHTML') || sinkLabel.includes('outerHTML') || 
+                  sinkLabel.includes('write') || sinkLabel.includes('HTML')) {
+            return 'html';
+        } else if (sinkLabel.includes('href') || sinkLabel.includes('location') || 
+                  sinkLabel.includes('src') || sinkLabel.includes('open')) {
+            return 'url';
+        } else if (sinkLabel.includes('on') || sinkLabel.includes('event') || 
+                  sinkLabel.includes('click') || sinkLabel.includes('mouse')) {
+            return 'event';
+        }
+        
+        return 'html'; // 默认类别
+    }
+
+    /**
+     * 根据接收点类别获取漏洞严重性
+     * @param {string} category - 接收点类别
+     * @returns {string} 严重性级别
+     */
+    getSeverity(category) {
+        switch (category) {
+            case 'js':
+                return 'High';
+            case 'html':
+                return 'Medium';
+            case 'url':
+            case 'event':
+                return 'Low';
+            default:
+                return 'Medium';
+        }
+    }
+
+    /**
      * 主入口函数
      * @returns {Promise<void>}
      */
-    async run() {
+    async startTesting() {
         console.log(`[${this.name}] Starting detection...`);
         
-        // 执行高级检测
-        await this.advancedDetect();
-        
-        console.log(`[${this.name}] Detection completed.`);
+        try {
+            // 如果被动检测没有发现漏洞，进行主动检测
+            if (!this.vulnerabilityFound) {
+                await this.activeDetection();
+            }
+            
+            console.log(`[${this.name}] Detection completed.`);
+        } catch (error) {
+            console.error(`[${this.name}] Error during testing:`, error);
+        }
     }
 }
 
-module.exports = DOMXSSDetector;
+module.exports = DOMXSSScanner;

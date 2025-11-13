@@ -532,15 +532,19 @@ function fileShouldBeSearched() {
 // **************************************************************************************
 function addDetectionStr(input, curStr) {
     let addStr = '';
+    
     if (input === 'filename' && !curStr.includes('filename')) addStr = 'name';
+
     if (input === 'uri' && !curStr.includes('uri')) addStr = 'uri';
+
     if (input === 'hash' && !curStr.includes('file hash')) addStr = 'hash';
+
     if (input === 'filecontent' && !curStr.includes('file content')) addStr = 'contents';
+
     if (input === 'synhash' && !curStr.includes('syntax fingerprint')) addStr = 'syntax fingerprint';
-
-
     if (curStr !== '' && addStr !== '')
         addStr = ', and ' + addStr;
+
     return curStr + addStr;
 }
 
@@ -880,7 +884,7 @@ class classJavaAudits extends CoreLayer {
                     console.log(curVuln.identifiers)
                     console.log(`在${this.url}的网址检测易受攻击的脚本漏洞`);
                     if (this.url) {
-                        const msg = { url: this.url, body: "22", payload: "11", vuln: this.getVulnId(__filename), level: "m" } //"rj-020-0001"
+                        const msg = { url: this.url, body: "22", payload: "11", vuln: "rj-022-0001", level: "m" } //"rj-020-0001"
                         this.alert(createReport(msg));
                     }
 

@@ -14,53 +14,21 @@ var workerRecord = [];
 var isCommunicationEnded = false;
 var taskManagers = new taskmanager();
 
-
-
-
 function handleRequest(call, SendJsonRequest) {
-    var url = null;
-    var headers = {};
-    var postData = null;
-    var hostid = null;
-    var method = null;
-    var taskid = null;
-    // serialize the struct to bytes
-    const Details = SendJsonRequest.Details;
-    var msg = "ok";
-    var siteFiles = null;
-    var isSiteFile = false;
-    var targetLength = 0;
-
-
-    if (Details.fields.url == undefined) { msg = "error rpc数据包中没有url成员" } else { url = Details.fields.url.stringValue; }
-
-    if (Details.fields.headers == undefined) { msg = "error rpc数据包中没有headers成员" } else {
-        tmpheaders = Details.fields.headers.structValue.fields
-        for (var attr in Details.fields.headers.structValue.fields) {
-            headers[attr] = tmpheaders[attr].stringValue
-        }
+    // 获取任务ID和目标ID
+    const taskid = SendJsonRequest.taskid;
+    const targetid = SendJsonRequest.targetid;
+    
+    // 处理所有Details数组中的请求
+    const detailsArray = SendJsonRequest.Details;
+    let targetLength = detailsArray.length;
+    
+    if (targetLength === 0) {
+        console.log("警告: 没有要处理的目标");
+        return;
     }
-
-    Details.fields.data == undefined ? (msg = "error rpc数据包中没有data成员") : (postData = Details.fields.data.stringValue);
-
-    Details.fields.targetLength == undefined ? (msg = "error rpc数据包中没有data成员") : (targetLength = Details.fields.targetLength.numberValue);
-
-    if (Details.fields.method == undefined) { msg = "error rpc数据包中没有method成员" } else { method = Details.fields.method.stringValue; }
-
-    if (Details.fields.hostid == undefined) { msg = "error rpc数据包中没有hostid成员" } else { hostid = Details.fields.hostid.numberValue; }
-
-    if (Details.fields.taskid == undefined) { msg = "error rpc数据包中没有taskid成员" } else { taskid = Details.fields.taskid.numberValue; }
-
-    if (Details.fields.isFile == undefined) { msg = "error rpc数据包中没有isFile成员" } else {
-        isSiteFile = Details.fields.isFile.boolValue;
-        if (isSiteFile) {
-            fileName = Details.fields.FileName.stringValue;
-            filenameContent = Details.fields.FileContent.stringValue;
-        }
-    }
-
+    
     if (cluster.isPrimary) {
-
         const waitWorker = () => {
             return new Promise(resolve => {
                 const checkWorker = setInterval(() => {
@@ -75,7 +43,6 @@ function handleRequest(call, SendJsonRequest) {
                     clearInterval(checkWorker);
                     resolve(null);
                 }, 10000);
-
             });
         };
 
@@ -87,87 +54,92 @@ function handleRequest(call, SendJsonRequest) {
                 }
             }, 10000);
 
-            for (; ;) {
-                if (workerRecord.length < cpuNums) {
-                    ii++
-                    if (isCommunicationEnded) { return }
-                    // await new Promise(resolve => setTimeout(resolve, 1000))
-                    const worker = cluster.fork();
-                    let requestInfo = {}
-                    if (isSiteFile) {
-                        requestInfo = {
-                            url: url,
-                            headers: headers,
-                            postData: postData,
-                            hostid: hostid,
-                            method: method,
-                            taskid: taskid,
-                            details: SendJsonRequest.Details,
-                            msg: "ok",
-                            siteFile: fileName,
-                            siteFilecontent: filenameContent,
-                            isSiteFile: isSiteFile,
-                            call: call,
-                        };
-                    } else {
-                        requestInfo = {
-                            url: url,
-                            headers: headers,
-                            postData: postData,
-                            hostid: hostid,
-                            method: method,
-                            taskid: taskid,
-                            details: SendJsonRequest.Details,
-                            msg: "ok",
-                            siteFile: "",
-                            siteFilecontent: "",
-                            isSiteFile: isSiteFile,
-                            call: call,
-                        };
+            // 为每个目标创建一个工作进程
+            for (let i = 0; i < detailsArray.length; i++) {
+                const Details = detailsArray[i];
+                
+                // 提取每个目标的信息
+                let url = null;
+                let headers = {};
+                let postData = null;
+                let hostid = null;
+                let method = null;
+                let isSiteFile = false;
+                let fileName = "";
+                let filenameContent = "";
+                
+                // 解析目标详情
+                if (Details.fields.url) url = Details.fields.url.stringValue;
+                
+                if (Details.fields.headers) {
+                    const tmpheaders = Details.fields.headers.structValue.fields;
+                    for (var attr in tmpheaders) {
+                        headers[attr] = tmpheaders[attr].stringValue;
                     }
-
-                    //Add once with the same tashid
+                }
+                
+                if (Details.fields.data) postData = Details.fields.data.stringValue;
+                if (Details.fields.method) method = Details.fields.method.stringValue;
+                if (Details.fields.hostid) hostid = Details.fields.hostid.numberValue;
+                
+                if (Details.fields.isFile && Details.fields.isFile.boolValue) {
+                    isSiteFile = true;
+                    if (Details.fields.FileName) fileName = Details.fields.FileName.stringValue;
+                    if (Details.fields.FileContent) filenameContent = Details.fields.FileContent.stringValue;
+                }
+                
+                // 等待有可用的工作进程
+                if (workerRecord.length < cpuNums) {
+                    ii++;
+                    if (isCommunicationEnded) return;
+                    
+                    const worker = cluster.fork();
+                    let requestInfo = {
+                        url: url,
+                        headers: headers,
+                        postData: postData,
+                        hostid: hostid,
+                        method: method,
+                        taskid: taskid,
+                        targetid: targetid,
+                        details: Details,
+                        msg: "ok",
+                        siteFile: fileName,
+                        siteFilecontent: filenameContent,
+                        isSiteFile: isSiteFile,
+                        call: call,
+                    };
+                    
+                    // 添加任务到管理器
                     taskManagers.addTask(taskid, targetLength, call);
-                    //console.log(`taskManagers ${worker.process.pid} push`);
                     taskManagers.addProcess(taskid, worker.process.pid);
                     gWorker.push({ worker: worker, state: "idle", Info: requestInfo });
                     workerRecord.push({ pid: worker.process.pid });
-                    break;
                 } else {
+                    // 等待有工作进程可用
                     await waitWorker();
+                    i--; // 重试当前目标
                 }
             }
         })();
     }
-    return
+    return;
 }
 
-
 function routeChat(call) {
-
     call.on('data', function (JsonRequest) {
-        // const { handleRequest, workerExitHandler } = HandleRequest(call, JsonRequest);
-        // handlers.push({ handleRequest, workerExitHandler });
-
         isCommunicationEnded = false;
         handleRequest(call, JsonRequest);
-        //console.log("exit")
-        //HandleRequest(call, JsonRequest)
     });
+    
     call.on('end', function (status) {
         console.log("结束本次通讯");
         setTimeout(() => {
             isCommunicationEnded = true;
         }, 60000);
-        //taskManagers.clearTasks();
     });
 }
 
-
-
-
-
-// const HeadlessChrome = require('./lib/Browser.js')
 function getServer() {
     var server = new grpc.Server();
     server.addService(rpc.RouteGuide.service, {
@@ -176,8 +148,6 @@ function getServer() {
     return server;
 }
 
-
-// 
 async function main() {
     if (cluster.isPrimary) {
         cluster.schedulingPolicy = cluster.SCHED_RR; // 指定调度策略为轮询加权
@@ -189,7 +159,6 @@ async function main() {
 
         // 注册 worker 的 exit 监听器
         cluster.on('exit', (worker, code, signal) => {
-            //console.log(`worker ${worker.process.pid} died`);
             workerRecord = workerRecord.filter(function (w) {
                 if (w)
                     return w.pid !== worker.process.pid;
@@ -222,8 +191,6 @@ async function main() {
             for (; ;) {
                 const availableWorker = await waitWorker();
                 if (availableWorker) {
-                    //console.log(availableWorker.worker.process.pid);
-
                     if (availableWorker.Info.isSiteFile) {
                         availableWorker.worker.send({
                             scheme: "http",
@@ -232,6 +199,7 @@ async function main() {
                             method: availableWorker.Info.method,
                             postData: availableWorker.Info.postData,
                             taskid: availableWorker.Info.taskid,
+                            targetid: availableWorker.Info.targetid,
                             hostid: availableWorker.Info.hostid,
                             isSiteFile: availableWorker.Info.isSiteFile,
                             siteFile: availableWorker.Info.siteFile,
@@ -245,6 +213,7 @@ async function main() {
                             method: availableWorker.Info.method,
                             postData: availableWorker.Info.postData,
                             taskid: availableWorker.Info.taskid,
+                            targetid: availableWorker.Info.targetid,
                             hostid: availableWorker.Info.hostid
                         });
                     }
@@ -252,12 +221,13 @@ async function main() {
                     availableWorker.state = "running";
 
                     availableWorker.worker.on('message', function (msg) {
-                        //console.log('Master ' + process.pid + ' received message from worker ' + this.pid + '.', msg);
+                        // 确保响应包含targetid
+                        if (!msg.targetid && availableWorker.Info.targetid) {
+                            msg.targetid = availableWorker.Info.targetid;
+                        }
                         availableWorker.Info.call.write(msg);
                     });
-
                 }
-
             }
         })();
 
@@ -284,7 +254,6 @@ async function main() {
         })
 
         process.on('message', (msg) => {
-
             var variations = null;
 
             if (msg.isSiteFile) {
@@ -304,6 +273,7 @@ async function main() {
                 postData: msg.postData,
                 __call: process,
                 taskid: msg.taskid,
+                targetid: msg.targetid, // 添加targetid
                 hostid: msg.hostid,
                 variations: variations,
                 isFile: msg.isSiteFile,
@@ -318,9 +288,9 @@ async function main() {
                     const testingPromises = [];
                     for (const file of files) {
                         const filePath = path.join(directoryPath, file);
-                        const module = require(filePath);
                         // 检查文件是否是 .js 文件
                         if (path.extname(file) === '.js') {
+                            const module = require(filePath);
                             const scriptobj = new module(CL);
                             const startTesting = async function () {
                                 await scriptobj.startTesting();
@@ -337,20 +307,14 @@ async function main() {
                 }
             };
 
-
             runTesting().then(() => {
                 process.exit(0);
             }).catch((err) => {
                 console.error(err);
                 process.exit(1);
             });
-
         });
     }
-
 }
-
-
-
 
 main();

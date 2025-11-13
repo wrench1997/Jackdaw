@@ -9,7 +9,7 @@
 const {emtryParams, urlencodedParams, urlGetParams,urlHelper } = require('./core/core.js')
 const HeadlessChrome = require('./lib/Browser.js');
 //插入脚本
-const Moudle = require('./plugins/phpdeserialization.js')
+const Moudle = require('./plugins_dev/phpdeserialization.js')
 const { setGlobalDispatcher, ProxyAgent } = require("undici");
 const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
 setGlobalDispatcher(dispatcher);

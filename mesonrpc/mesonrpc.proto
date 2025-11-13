@@ -1,8 +1,6 @@
 syntax = "proto3";
 package mesonrpc;
 option go_package = ".";
-
-
 import "google/protobuf/struct.proto";
 
 service RouteGuide  {
@@ -12,7 +10,7 @@ service RouteGuide  {
 message JsonRequest {
     int64 taskid  = 1;
     int64 targetid = 2;
-    google.protobuf.Struct Details = 3;
+    repeated google.protobuf.Struct Details = 3;
 }
 
 message JsonResponse {
@@ -20,8 +18,3 @@ message JsonResponse {
     int64 targetid = 2;
     google.protobuf.Struct Report = 3;
 }
-
-
-// service RouteJsFile  {
-//     rpc RouteJsFile (stream JsonRequest) returns (stream JsonResponse) {}
-// }

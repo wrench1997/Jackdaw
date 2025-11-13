@@ -75,9 +75,8 @@ class classPhpDeserialization extends CoreLayer {
                 response.body.forEach(element => {
                     if (element.indexOf("ab49bdd251591b16da541abad631329c") != -1) {
                         if (this.url) {
-                            const msg = { url: this.url, body: element, payload: payload, vuln: this.getVulnId(__filename), level: "h" } //"rj-020-0001"
+                            const msg = { url: this.url, body: element, payload: payload, vuln: "rj-020-0001", level: "h" } //"rj-020-0001"
                             this.alert(createReport(msg));
-                            
                         }
                     }
                 });
