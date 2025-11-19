@@ -267,7 +267,7 @@ async function main() {
             const CL = {
                 browser: browser,
                 scheme: msg.scheme,
-                url: new urlHelper(msg.url),
+                url: msg.url,
                 headers: msg.headers,
                 method: msg.method,
                 postData: msg.postData,

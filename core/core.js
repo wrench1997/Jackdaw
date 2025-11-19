@@ -361,9 +361,11 @@ class browerHttpJob {
     /**
      * Executes the function.
      *
+     * @param {boolean} [closeTab=true] - 是否在执行完成后关闭标签页
+     * @param {number} [timeout=5000] - 请求超时时间(毫秒)
      * @return {Promise} The promise that resolves to the result of the function execution.
      */
-    async execute() {
+    async execute(closeTab = true, timeout = 500) {
         // browserIsInitialized.call(this);
         this.tab = await this.browser.newTab();
 
@@ -377,29 +379,257 @@ class browerHttpJob {
                 postData: Buffer.from(this.postData).toString("base64"),
                 isEncodeUrl: false,
             }
-            var ret = await this.tab.postEx(httprqueset);
+            var ret = await this.tab.postEx(httprqueset, timeout);
             this.response = { body: ret.body, headers: ret.headers, responseStatus: ret.status }
             this.responseStatus = ret.status
-            await this.tab.close()
+            
+            // 根据参数决定是否关闭标签页
+            if (closeTab) {
+                await this.tab.close()
+            }
             return ret
         } else {
             const httprqueset = {
-                url: this.url,
+                url: url,
                 method: this.method,
                 headers: this.headers,
                 // postData: Buffer.from(this.postData).toString("base64"),
                 isEncodeUrl: false,
             }
-            var ret = await this.tab.getEx(httprqueset);
+            var ret = await this.tab.getEx(httprqueset, timeout);
             if (ret != null) {
                 this.response = { body: ret.body, headers: ret.headers, responseStatus: ret.status }
                 this.responseStatus = ret.status   
             }
             
-            await this.tab.close()
+            // 根据参数决定是否关闭标签页
+            if (closeTab) {
+                await this.tab.close()
+            }
             return ret
         }
     }
+
+    /**
+     * 在当前标签页中执行JavaScript脚本
+     * 
+     * @param {string|function} script - 要执行的JavaScript脚本或函数
+     * @param {...any} args - 传递给脚本的参数
+     * @return {Promise<any>} - 脚本执行的结果
+     */
+    async evaluate(script, ...args) {
+        if (!this.tab) {
+            throw new Error('Tab is not initialized. Call execute() first with closeTab=false');
+        }
+        
+        return await this.tab.evaluate(script, ...args);
+    }
+
+    /**
+     * 触发页面中的所有 DOM 事件
+     * 这个方法会尝试触发页面中所有元素的各种事件，帮助发现潜在的 DOM XSS 漏洞
+     * 
+     * @param {number} [timeout=3000] - 触发事件的超时时间(毫秒)
+     * @return {Promise<Object>} - 返回触发事件的结果统计
+     */
+    async triggerAllDomEvents(timeout = 3000) {
+        if (!this.tab) {
+            throw new Error('Tab is not initialized. Call execute() first with closeTab=false');
+        }
+        
+        console.log('开始触发所有 DOM 事件...');
+        
+        try {
+            // 设置超时
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('触发事件超时')), timeout);
+            });
+            
+            // 执行事件触发
+            const triggerPromise = this.tab.evaluate(() => {
+                // 创建结果统计对象
+                const stats = {
+                    elementsProcessed: 0,
+                    eventsFired: 0,
+                    eventsByType: {}
+                };
+                
+                // 定义要触发的事件类型
+                const eventTypes = [
+                    // 鼠标事件
+                    'click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove',
+                    // 键盘事件
+                    'keydown', 'keyup', 'keypress',
+                    // 表单事件
+                    'focus', 'blur', 'change', 'submit', 'reset', 'select', 'input',
+                    // 拖拽事件
+                    'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
+                    // 其他常见事件
+                    'load', 'unload', 'resize', 'scroll', 'contextmenu'
+                ];
+                
+                // 触发指定元素的所有事件
+                function triggerEventsOnElement(element) {
+                    stats.elementsProcessed++;
+                    
+                    // 遍历所有事件类型
+                    for (const eventType of eventTypes) {
+                        try {
+                            // 创建事件对象
+                            let event;
+                            
+                            // 根据事件类型创建不同的事件对象
+                            if (['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove', 'contextmenu'].includes(eventType)) {
+                                // 鼠标事件
+                                event = new MouseEvent(eventType, {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window
+                                });
+                            } else if (['keydown', 'keyup', 'keypress'].includes(eventType)) {
+                                // 键盘事件
+                                event = new KeyboardEvent(eventType, {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    key: 'a',
+                                    code: 'KeyA'
+                                });
+                            } else {
+                                // 其他事件
+                                event = new Event(eventType, {
+                                    bubbles: true,
+                                    cancelable: true
+                                });
+                            }
+                            
+                            // 触发事件
+                            const dispatched = element.dispatchEvent(event);
+                            
+                            // 更新统计信息
+                            stats.eventsFired++;
+                            stats.eventsByType[eventType] = (stats.eventsByType[eventType] || 0) + 1;
+                            
+                            // 特殊处理表单元素
+                            if (eventType === 'focus' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
+                                // 尝试设置值并触发 input 和 change 事件
+                                const originalValue = element.value;
+                                element.value = 'test_input';
+                                
+                                // 触发 input 事件
+                                const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+                                element.dispatchEvent(inputEvent);
+                                
+                                // 触发 change 事件
+                                const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+                                element.dispatchEvent(changeEvent);
+                                
+                                // 恢复原始值
+                                element.value = originalValue;
+                                
+                                // 更新统计信息
+                                stats.eventsFired += 2;
+                                stats.eventsByType['input'] = (stats.eventsByType['input'] || 0) + 1;
+                                stats.eventsByType['change'] = (stats.eventsByType['change'] || 0) + 1;
+                            }
+                            
+                            // 特殊处理表单提交
+                            if (eventType === 'submit' && element.tagName === 'FORM') {
+                                // 阻止实际提交
+                                element.onsubmit = function(e) {
+                                    e.preventDefault();
+                                    return false;
+                                };
+                            }
+                        } catch (e) {
+                            // 忽略错误，继续处理下一个事件
+                            console.warn(`触发 ${eventType} 事件时出错:`, e.message);
+                        }
+                    }
+                    
+                    // 检查元素是否有自定义事件处理器属性
+                    const attributes = element.attributes;
+                    for (let i = 0; i < attributes.length; i++) {
+                        const attr = attributes[i];
+                        if (attr.name.startsWith('on') && attr.value) {
+                            const eventType = attr.name.substring(2); // 去掉 'on' 前缀
+                            try {
+                                // 创建并触发自定义事件
+                                const customEvent = new Event(eventType, {
+                                    bubbles: true,
+                                    cancelable: true
+                                });
+                                element.dispatchEvent(customEvent);
+                                
+                                // 更新统计信息
+                                stats.eventsFired++;
+                                stats.eventsByType[eventType] = (stats.eventsByType[eventType] || 0) + 1;
+                            } catch (e) {
+                                // 忽略错误
+                            }
+                        }
+                    }
+                }
+                
+                // 获取所有可交互元素
+                const interactiveElements = document.querySelectorAll(
+                    'a, button, input, select, textarea, form, [onclick], [onmouseover], ' +
+                    '[onmousedown], [onmouseup], [onkeydown], [onkeypress], [onkeyup], ' +
+                    '[onfocus], [onblur], [onchange], [onsubmit], [onreset], [onselect], ' +
+                    '[oninput], [ondrag], [ondragstart], [ondragend], [ondragover], ' +
+                    '[ondragenter], [ondragleave], [ondrop], [onload], [onunload], ' +
+                    '[onresize], [onscroll], [oncontextmenu], [role="button"], [tabindex]'
+                );
+                
+                // 触发所有可交互元素的事件
+                interactiveElements.forEach(triggerEventsOnElement);
+                
+                // 特殊处理 window 和 document 事件
+                ['load', 'unload', 'resize', 'scroll'].forEach(eventType => {
+                    try {
+                        const event = new Event(eventType, {
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        window.dispatchEvent(event);
+                        document.dispatchEvent(event);
+                        
+                        // 更新统计信息
+                        stats.eventsFired += 2;
+                        stats.eventsByType[eventType] = (stats.eventsByType[eventType] || 0) + 2;
+                    } catch (e) {
+                        // 忽略错误
+                    }
+                });
+                
+                return stats;
+            });
+            
+            // 使用 Promise.race 实现超时
+            const result = await Promise.race([triggerPromise, timeoutPromise]);
+            
+            console.log('DOM事件触发成功:', result.result.value);
+            return result.result.value;
+        } catch (error) {
+            console.error('触发DOM事件时出错:', error.message);
+            return {
+                error: error.message,
+                elementsProcessed: 0,
+                eventsFired: 0
+            };
+        }
+    }
+    /**
+     * 关闭当前标签页
+     * 
+     * @return {Promise<void>}
+     */
+    async closeTab() {
+        if (this.tab) {
+            await this.tab.close();
+            this.tab = null;
+        }
+    }
+
 }
 
 

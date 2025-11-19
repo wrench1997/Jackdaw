@@ -1,9 +1,8 @@
+
 // plugins/dom_xss_scanner.js
 const { CoreLayer, createReport, browerHttpJob } = require('../core/core.js');
 const fs = require('fs');
 const path = require('path');
-
-
 
 async function loadDetectorScript() {
     return new Promise((resolve, reject) => {
@@ -26,9 +25,7 @@ async function loadDetectorScript() {
         reject(error);  // 抛出错误
       });
     });
-  }
-
-
+}
 
 class DOMXSSScanner extends CoreLayer {
     constructor(Core) {
@@ -133,31 +130,6 @@ class DOMXSSScanner extends CoreLayer {
         };
     }
 
-    /**
-     * 检查网站是否可访问
-     * @param {string} url - 要检查的URL
-     * @param {number} timeout - 超时时间(毫秒)
-     * @return {Promise<boolean>} - 网站是否可访问
-     */
-    async isWebsiteAccessible(url, timeout = 5000) {
-        try {
-            const job = new browerHttpJob(this.browser);
-            job.url = url;
-            job.method = "HEAD"; // 使用HEAD请求减少数据传输
-            
-            // 设置超时
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            
-            const response = await job.execute();
-            clearTimeout(timeoutId);
-            
-            return response && response.status >= 200 && response.status < 400;
-        } catch (error) {
-            console.error(`网站访问检查失败: ${url}`, error.message);
-            return false;
-        }
-    }
 
     /**
      * 获取适合特定接收点的payload
@@ -213,11 +185,7 @@ class DOMXSSScanner extends CoreLayer {
                 return false;
             }
         }, detectorScript);
-        
-        // 等待脚本加载完成
-        // await tab.waitForSelectorToLoad('[data-xss-detector-loaded="true"]', 500, 50000);
     }
-
 
     /**
      * 获取检测结果
@@ -230,82 +198,6 @@ class DOMXSSScanner extends CoreLayer {
         });
     }
 
-
-    async triggerEvents(tab, timeout = 5000) {
-        try {
-            // 设置超时
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('触发事件超时')), timeout);
-            });
-            
-            // 执行事件触发
-            const triggerPromise = tab.evaluate(() => {
-                // 获取所有可点击元素
-                const clickableElements = document.querySelectorAll('a, button, input[type="button"], input[type="submit"], [onclick]');
-                
-                // 触发点击事件
-                clickableElements.forEach(element => {
-                    try {
-                        const event = new MouseEvent('click', {
-                            bubbles: true,
-                            cancelable: true,
-                            view: window
-                        });
-                        element.dispatchEvent(event);
-                    } catch (e) {
-                        // 忽略错误
-                    }
-                });
-                
-                // 获取所有表单元素
-                const formElements = document.querySelectorAll('input[type="text"], textarea');
-                
-                // 触发输入事件
-                formElements.forEach(element => {
-                    try {
-                        element.value = 'test';
-                        const event = new Event('input', {
-                            bubbles: true,
-                            cancelable: true
-                        });
-                        element.dispatchEvent(event);
-                        
-                        const changeEvent = new Event('change', {
-                            bubbles: true,
-                            cancelable: true
-                        });
-                        element.dispatchEvent(changeEvent);
-                    } catch (e) {
-                        // 忽略错误
-                    }
-                });
-                
-                // 触发鼠标移动事件
-                const mouseoverElements = document.querySelectorAll('[onmouseover]');
-                mouseoverElements.forEach(element => {
-                    try {
-                        const event = new MouseEvent('mouseover', {
-                            bubbles: true,
-                            cancelable: true,
-                            view: window
-                        });
-                        element.dispatchEvent(event);
-                    } catch (e) {
-                        // 忽略错误
-                    }
-                });
-                
-                return '事件触发完成';
-            });
-            
-            // 使用 Promise.race 实现超时
-            await Promise.race([triggerPromise, timeoutPromise]);
-            
-            console.log('DOM事件触发成功');
-        } catch (error) {
-            console.error('触发DOM事件时出错:', error.message);
-        }
-    }
     /**
      * 触发DOM事件
      * @param {Object} tab - 浏览器标签页
@@ -416,13 +308,6 @@ class DOMXSSScanner extends CoreLayer {
         console.log(`[${this.name}] 开始被动扫描...`);
         
         try {
-            // // 检查网站是否可访问
-            // const isAccessible = await this.isWebsiteAccessible(this.url.urlStr);
-            // if (!isAccessible) {
-            //     console.log(`网站 ${this.url.urlStr} 不可访问，跳过被动扫描`);
-            //     return [];
-            // }
-            
             // 创建一个新的浏览器标签页
             const tab = await this.browser.newTab();
             
@@ -432,21 +317,22 @@ class DOMXSSScanner extends CoreLayer {
             try {
 
                 // 导航到目标URL
-                await tab.goTo(this.url.urlStr);
+                await tab.goTo(this.url);
                 // 注入DOM XSS检测脚本
                 await this.injectDetectorScript(tab);         
+                
                 // 触发DOM事件
-                await this.triggerEvents(tab, 2000);
+                await this.triggerEvents(tab, 5000);
                 
                 // 获取检测结果
                 const detectionResults = await this.getDetectionResults(tab);
                 
-                console.log(`[${this.name}] 被动扫描发现 ${detectionResults.result.value.length} 个可疑点`);
+                console.log(`[${this.name}] 被动扫描发现 ${detectionResults ? detectionResults.result.value.length : 0} 个可疑点`);
                 
                 // 存储可疑点
-                this.suspiciousPoints = detectionResults;
+                this.suspiciousPoints = detectionResults || [];
                 
-                return detectionResults;
+                return this.suspiciousPoints;
             } catch (error) {
                 console.error(`[${this.name}] 被动扫描出错:`, error);
                 return [];
@@ -462,27 +348,21 @@ class DOMXSSScanner extends CoreLayer {
 
     /**
      * 主动验证 - 验证被动扫描发现的可疑点
-     * @param {Array} suspiciousPoints - 被动扫描发现的可疑点
      * @returns {Promise<void>}
      */
-    async activeVerification(suspiciousPoints) {
-        console.log(`[${this.name}] 开始主动验证 ${suspiciousPoints.result.value.length} 个可疑点...`);
+    async activeVerification() {
+        console.log(`[${this.name}] 开始主动验证...`);
         
-        if (suspiciousPoints.result.value.length === 0) {
-            console.log(`[${this.name}] 没有可疑点需要验证，开始全面主动扫描...`);
+        // 如果没有可疑点或者已经发现漏洞，直接进行全面主动扫描
+        if (!this.suspiciousPoints || this.suspiciousPoints.result.value.length === 0 || this.vulnerabilityFound) {
+            console.log(`[${this.name}] 没有可疑点需要验证或已发现漏洞，开始全面主动扫描...`);
             await this.activeDetection();
             return;
         }
         
         try {
-            // 解析URL
-            const urlObj = new URL(this.url.urlStr);
-            
-            // 获取URL参数
-            const searchParams = new URLSearchParams(urlObj.search);
-            
             // 为每个可疑点进行验证
-            for (const point of suspiciousPoints.result.value) {
+            for (const point of this.suspiciousPoints.result.value) {
                 // 如果已经发现漏洞，跳出循环
                 if (this.vulnerabilityFound) {
                     break;
@@ -495,59 +375,83 @@ class DOMXSSScanner extends CoreLayer {
                 
                 console.log(`[${this.name}] 验证可疑点: 源=${point.source.label}, 接收点=${point.sink.label}`);
                 
-                // 确定源参数
-                let sourceParam = null;
-                if (point.source.label.includes('location.search')) {
-                    // 尝试从URL参数中找到可能的源参数
-                    for (const [name, value] of searchParams.entries()) {
-                        if (point.value && point.value.includes(value)) {
-                            sourceParam = name;
-                            break;
-                        }
-                    }
+                // 根据源类型确定测试方法
+                if (this.method === "GET") {
+                    await this.verifyGetParameter(point);
+                } else if (this.method === "POST") {
+                    await this.verifyPostParameter(point);
                 }
-                
-                // 如果没有找到源参数，使用一个默认参数
-                if (!sourceParam) {
-                    if (point.source.label.includes('hash')) {
-                        sourceParam = 'hash';
-                    } else {
-                        sourceParam = 'xss';
-                    }
+            }
+            
+            // 如果验证后仍未发现漏洞，进行全面主动扫描
+            // if (!this.vulnerabilityFound) {
+            //     await this.activeDetection();
+            // }
+        } catch (error) {
+            console.error(`[${this.name}] 主动验证出错:`, error);
+        }
+    }
+    
+    /**
+     * 验证GET参数
+     * @param {Object} point - 可疑点
+     * @returns {Promise<void>}
+     */
+    async verifyGetParameter(point) {
+        try {
+            // 解析URL参数
+            const url = new URL(this.url);
+            const urlParams = new URLSearchParams(url.search);
+            
+            // 确定源参数
+            let sourceParam = null;
+            
+            // 尝试从URL参数中找到可能的源参数
+            for (const [name, value] of urlParams.entries()) {
+                if (point.value && point.value.includes(value)) {
+                    sourceParam = name;
+                    break;
                 }
-                
-                // 构建验证payload
-                const payload = this.getPayloadForSink({
-                    category: this.getSinkCategory(point.sink.label)
-                });
-                
-                // 构建验证URL
-                const verificationParams = new URLSearchParams(searchParams);
-                verificationParams.set(sourceParam, payload);
-                
-                let verificationUrl;
-                if (point.source.label.includes('hash')) {
-                    // 如果源是hash，将payload放在hash部分
-                    verificationUrl = `${urlObj.origin}${urlObj.pathname}?${verificationParams.toString()}#${payload}`;
+            }
+            
+            // 如果没有找到源参数，使用一个默认参数或第一个参数
+            if (!sourceParam) {
+                if (urlParams.keys().next().value) {
+                    sourceParam = urlParams.keys().next().value;
                 } else {
-                    verificationUrl = `${urlObj.origin}${urlObj.pathname}?${verificationParams.toString()}`;
+                    sourceParam = 'xss';
+                    // 如果没有参数，添加一个测试参数
+                    urlParams.append(sourceParam, 'test');
                 }
-                
-                // 创建一个新的标签页进行验证
-                const tab = await this.browser.newTab();
-                
-                // 设置对话框处理器
-                await this.setupDialogHandler(tab);
-                
+            }
+
+            // 构建验证payload
+            const payload = this.getPayloadForSink({
+                category: this.getSinkCategory(point.sink.label)
+            });
+
+            // 使用引擎的请求连接方式发送请求
+            const lastJob = new browerHttpJob(this.browser);
+
+            lastJob.method = this.method
+            lastJob.headers = this.headers
+            lastJob.isEncodeUrl = false;
+            for (var i = 0; i < this.variations.length; i++) {
+                this.variations.setValue(i, payload)
+                let payload11 = this.variations.toString()
+                let url = new URL(this.url);
+                let newurl = url.origin + url.pathname + '?' + payload11
+                lastJob.url = newurl
+                const response = await lastJob.execute(false);
+                await lastJob.triggerAllDomEvents(800)
+                if (!response || !response.body) {
+                    console.log(`[${this.name}] 验证请求失败或响应为空`);
+                    return;
+                }
+
                 try {
-                    // 导航到验证URL
-                    await tab.goTo(verificationUrl);
-                    
-                    // 触发DOM事件
-                    await this.triggerEvents(tab, 2000);
-                    
                     // 检查是否存在我们的标识符
-                    const hasIdentifier = await tab.evaluate((identifier) => {
+                    const hasIdentifier = await lastJob.evaluate((identifier) => {
                         // 检查是否有元素包含我们的标识符
                         const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
                         if (elements.length > 0) {
@@ -563,231 +467,134 @@ class DOMXSSScanner extends CoreLayer {
                     }, this.identifier);
                     
                     // 如果找到漏洞，报告结果
-                    if (hasIdentifier && hasIdentifier.found) {
+                    if (hasIdentifier && hasIdentifier.result.value.found) {
                         const report = createReport({
                             vulnid: this.vulnid,
                             taskid: this.taskid,
-                            url: verificationUrl,
+                            url: this.url,
                             param: sourceParam,
                             payload: payload,
                             source: point.source.label,
                             sink: point.sink.label,
                             category: this.getSinkCategory(point.sink.label),
                             severity: point.severity || this.getSeverity(this.getSinkCategory(point.sink.label)),
-                            details: `DOM XSS vulnerability found in parameter '${sourceParam}'. Source: ${point.source.label}, Sink: ${point.sink.label}`
+                            details: `DOM XSS vulnerability found in GET parameter '${sourceParam}'. Source: ${point.source.label}, Sink: ${point.sink.label}`
                         });
                         
                         this.alert(report);
                         
                         // 设置标志，表示已经发现漏洞
                         this.vulnerabilityFound = true;
+                        return
                     }
                 } catch (error) {
                     console.error(`[${this.name}] 验证出错:`, error);
                 } finally {
                     // 确保标签页被关闭
-                    await tab.close();
+                    await lastJob.closeTab();
+                }
+            }
+        } catch (error) {
+            console.error(`[${this.name}] 验证GET参数出错:`, error);
+        }
+    }
+    
+    /**
+     * 验证POST参数
+     * @param {Object} point - 可疑点
+     * @returns {Promise<void>}
+     */
+    async verifyPostParameter(point) {
+        try {
+            // 解析POST数据
+            const postParams = new URLSearchParams(this.postData);
+            
+            // 确定源参数
+            let sourceParam = null;
+            
+            // 尝试从POST参数中找到可能的源参数
+            for (const [name, value] of postParams.entries()) {
+                if (point.value && point.value.includes(value)) {
+                    sourceParam = name;
+                    break;
                 }
             }
             
-            // 如果验证没有发现漏洞，进行全面主动扫描
-            // if (!this.vulnerabilityFound) {
-            //     console.log(`[${this.name}] 验证未发现漏洞，开始全面主动扫描...`);
-            //     await this.activeDetection();
-            // }
-        } catch (error) {
-            console.error(`[${this.name}] 主动验证出错:`, error);
-        }
-    }
-
-    /**
-     * 主动DOM XSS检测
-     * @returns {Promise<void>}
-     */
-    async activeDetection() {
-        console.log(`[${this.name}] 开始全面主动扫描...`);
-        
-        try {
-            // 如果已经发现漏洞，直接返回
-            if (this.vulnerabilityFound) {
+            // 如果没有找到源参数，使用一个默认参数或第一个参数
+            if (!sourceParam) {
+                if (postParams.keys().next().value) {
+                    sourceParam = postParams.keys().next().value;
+                } else {
+                    sourceParam = 'xss';
+                    postParams.append(sourceParam, 'test');
+                }
+            }
+            
+            // 构建验证payload
+            const payload = this.getPayloadForSink({
+                category: this.getSinkCategory(point.sink.label)
+            });
+            
+            // 设置payload到参数中
+            postParams.set(sourceParam, payload);
+            
+            // 使用引擎的请求连接方式发送请求
+            const lastJob = new browerHttpJob(this.browser);
+            lastJob.url = this.url;
+            lastJob.method = "POST";
+            lastJob.headers = this.headers;
+            lastJob.postData = postParams.toString();
+            lastJob.isEncodeUrl = false;
+            
+            const response = await lastJob.execute();
+            
+            if (!response || !response.body) {
+                console.log(`[${this.name}] 验证请求失败或响应为空`);
                 return;
             }
             
-            // 解析URL
-            const urlObj = new URL(this.url.urlStr);
-            
-            // 获取URL参数
-            const searchParams = new URLSearchParams(urlObj.search);
-            const params = [];
-            
-            // 将URL参数转换为数组
-            for (const [name, value] of searchParams.entries()) {
-                params.push({ name, value });
-            }
-            
-            // 如果没有参数，添加一些常见参数进行测试
-            if (params.length === 0) {
-                const commonParams = ['q', 'search', 'id', 'name', 'input', 'query', 'keyword', 'redirect', 'url', 'callback'];
-                for (const param of commonParams) {
-                    params.push({ name: param, value: 'test' });
-                }
-            }
-            
-            // 为每个参数尝试不同的payload
-            for (const param of params) {
-                // 如果已经发现漏洞，跳出循环
-                if (this.vulnerabilityFound) {
-                    break;
-                }
+      
+            try {
+                // 检查是否存在我们的标识符
+                const hasIdentifier = await lastJob.evaluate((identifier) => {
+                    // 检查是否有元素包含我们的标识符
+                    const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
+                    if (elements.length > 0) {
+                        return { found: true, sink: 'element.attribute' };
+                    }
+                    // 检查document.documentElement是否有我们的标识符
+                    if (document.documentElement.getAttribute('data-xss-found') === identifier) {
+                        return { found: true, sink: 'document.documentElement' };
+                    }
+                    return { found: false };
+                }, this.identifier);
                 
-                const originalValue = param.value;
-                
-                // 为每个接收点类型尝试不同的payload
-                for (const sink of this.sinks) {
-                    // 如果已经发现漏洞，跳出循环
-                    if (this.vulnerabilityFound) {
-                        break;
-                    }
-
-                    const payload = this.getPayloadForSink(sink);
+                // 如果找到漏洞，报告结果
+                if (hasIdentifier && hasIdentifier.result.value.found) {
+                    const report = createReport({
+                        vulnid: this.vulnid,
+                        taskid: this.taskid,
+                        url: this.url,
+                        param: sourceParam,
+                        payload: payload,
+                        source: point.source.label,
+                        sink: point.sink.label,
+                        category: this.getSinkCategory(point.sink.label),
+                        severity: point.severity || this.getSeverity(this.getSinkCategory(point.sink.label)),
+                        details: `DOM XSS vulnerability found in POST parameter '${sourceParam}'. Source: ${point.source.label}, Sink: ${point.sink.label}`
+                    });
                     
-                    // 构建测试URL
-                    const testParams = new URLSearchParams(searchParams);
-                    testParams.set(param.name, payload);
+                    this.alert(report);
                     
-                    const testUrl = `${urlObj.origin}${urlObj.pathname}?${testParams.toString()}`;
-                    
-                    // 创建一个新的浏览器标签页
-                    const tab = await this.browser.newTab();
-                    
-                    // 设置对话框处理器
-                    await this.setupDialogHandler(tab);
-                    
-                    try {
-                        // 导航到测试URL
-                        await tab.goTo(testUrl);
-                        
-                        // 触发DOM事件
-                        await this.triggerEvents(tab, 2000);
-                        
-                        // 检查是否存在我们的标识符
-                        const hasIdentifier = await tab.evaluate((identifier) => {
-                            // 检查是否有元素包含我们的标识符
-                            const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
-                            if (elements.length > 0) {
-                                return { found: true, sink: 'element.attribute' };
-                            }
-                            
-                            // 检查document.documentElement是否有我们的标识符
-                            if (document.documentElement.getAttribute('data-xss-found') === identifier) {
-                                return { found: true, sink: 'document.documentElement' };
-                            }
-                            
-                            return { found: false };
-                        }, this.identifier);
-                        
-                        // 如果找到漏洞，报告结果
-                        if (hasIdentifier && hasIdentifier.found) {
-                            const report = createReport({
-                                vulnid: this.vulnid,
-                                taskid: this.taskid,
-                                url: testUrl,
-                                param: param.name,
-                                payload: payload,
-                                sink: hasIdentifier.sink,
-                                category: sink.category,
-                                severity: this.getSeverity(sink.category),
-                                details: `DOM XSS vulnerability found in parameter '${param.name}' with payload '${payload}'. The payload was executed in the '${hasIdentifier.sink}' sink.`
-                            });
-                            
-                            this.alert(report);
-                            
-                            // 设置标志，表示已经发现漏洞
-                            this.vulnerabilityFound = true;
-                        }
-                    } catch (error) {
-                        console.error(`[${this.name}] 主动扫描出错:`, error);
-                    } finally {
-                        // 确保标签页被关闭
-                        await tab.close();
-                    }
+                    // 设置标志，表示已经发现漏洞
+                    this.vulnerabilityFound = true;
                 }
+            } catch (error) {
+                console.error(`[${this.name}] 验证出错:`, error);
             }
-            
-            // 如果参数测试没有发现漏洞，尝试测试hash部分
-            if (!this.vulnerabilityFound) {
-                console.log(`[${this.name}] 参数测试未发现漏洞，测试hash部分...`);
-                
-                // 为每个接收点类型尝试不同的payload
-                for (const sink of this.sinks) {
-                    // 如果已经发现漏洞，跳出循环
-                    if (this.vulnerabilityFound) {
-                        break;
-                    }
-
-                    const payload = this.getPayloadForSink(sink);
-                    
-                    // 构建测试URL
-                    const testUrl = `${urlObj.origin}${urlObj.pathname}?${searchParams.toString()}#${payload}`;
-                    
-                    // 创建一个新的浏览器标签页
-                    const tab = await this.browser.newTab();
-                    
-                    // 设置对话框处理器
-                    await this.setupDialogHandler(tab);
-                    
-                    try {
-                        // 导航到测试URL
-                        await tab.goTo(testUrl);
-                        
-                        // 触发DOM事件
-                        await this.triggerEvents(tab, 2000);
-                        
-                        // 检查是否存在我们的标识符
-                        const hasIdentifier = await tab.evaluate((identifier) => {
-                            // 检查是否有元素包含我们的标识符
-                            const elements = document.querySelectorAll(`[data-xss-found="${identifier}"]`);
-                            if (elements.length > 0) {
-                                return { found: true, sink: 'element.attribute' };
-                            }
-                            
-                            // 检查document.documentElement是否有我们的标识符
-                            if (document.documentElement.getAttribute('data-xss-found') === identifier) {
-                                return { found: true, sink: 'document.documentElement' };
-                            }
-                            
-                            return { found: false };
-                        }, this.identifier);
-                        
-                        // 如果找到漏洞，报告结果
-                        if (hasIdentifier && hasIdentifier.found) {
-                            const report = createReport({
-                                vulnid: this.vulnid,
-                                taskid: this.taskid,
-                                url: testUrl,
-                                param: 'hash',
-                                payload: payload,
-                                sink: hasIdentifier.sink,
-                                category: sink.category,
-                                severity: this.getSeverity(sink.category),
-                                details: `DOM XSS vulnerability found in hash fragment with payload '${payload}'. The payload was executed in the '${hasIdentifier.sink}' sink.`
-                            });
-                            
-                            this.alert(report);
-                            
-                            // 设置标志，表示已经发现漏洞
-                            this.vulnerabilityFound = true;
-                        }
-                    } catch (error) {
-                        console.error(`[${this.name}] Hash测试出错:`, error);
-                    } finally {
-                        // 确保标签页被关闭
-                        await tab.close();
-                    }
-                }
-            }
+            // 不需要关闭标签页，因为我们使用的是已有的标签页
         } catch (error) {
-            console.error(`[${this.name}] 主动扫描出错:`, error);
+            console.error(`[${this.name}] 验证POST参数出错:`, error);
         }
     }
 
@@ -851,16 +658,10 @@ class DOMXSSScanner extends CoreLayer {
         
         try {
             // 1. 首先进行被动扫描
-            const suspiciousPoints = await this.passiveScan();
+            await this.passiveScan();
             
-            // 2. 如果被动扫描发现可疑点，进行主动验证
-            if (suspiciousPoints.result.value.length > 0) {
-                await this.activeVerification(suspiciousPoints);
-            }
-            // } else {
-            //     // 3. 如果被动扫描没有发现可疑点，进行全面主动扫描
-            //     await this.activeDetection();
-            // }
+            // 2. 然后进行主动验证
+            await this.activeVerification();
             
             console.log(`[${this.name}] DOM XSS检测完成. 发现漏洞: ${this.vulnerabilityFound}`);
         } catch (error) {
