@@ -379,6 +379,17 @@
             
             // 监控 createElement 和 appendChild
             this.monitorElementCreation();
+
+
+            // 新增: 监控 Range.createContextualFragment (常见 XSS sink)
+            if (typeof Range.prototype.createContextualFragment === 'function') {
+                const originalCreate = Range.prototype.createContextualFragment;
+                Range.prototype.createContextualFragment = function(html) {
+                    this.checkForXSS('Range.createContextualFragment', html);
+                    return originalCreate.apply(this, arguments);
+                };
+            }
+            
         }
 
         /**
@@ -645,6 +656,114 @@
             }
         }
 
+
+
+        // 新增方法：表单填充检测
+        async formFillingDetection(tab) {
+            try {
+                // 如果已经发现漏洞，直接返回
+                if (this.vulnerabilityFound) {
+                    return;
+                }
+
+                console.log('开始表单填充检测...');
+
+                // 获取页面中的输入字段和按钮
+                const formElements = await tab.evaluate(() => {
+                    const inputs = Array.from(document.querySelectorAll('input[type="text"], input[type="search"], textarea'));
+                    const buttons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]'));
+                    return {
+                        inputs: inputs.map(el => el.id || el.name || el.tagName), // 简单标识
+                        buttons: buttons.map(el => el.id || el.name || el.tagName)
+                    };
+                });
+
+                // 如果没有输入字段，跳过
+                if (!formElements.result.value.inputs.length) {
+                    console.log('未找到输入字段，跳过表单填充检测');
+                    return;
+                }
+
+                // 为每个输入字段尝试注入 payload
+                for (const sink of this.sinks) {
+                    if (this.vulnerabilityFound) break;
+
+                    const payload = this.getPayloadForSink(sink);
+
+                    // 注入 payload 到所有输入字段
+                    await tab.evaluate((payload) => {
+                        const inputs = document.querySelectorAll('input[type="text"], input[type="search"], textarea');
+                        inputs.forEach(input => {
+                            input.value = payload;
+                            // 触发 input 和 change 事件
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                    }, payload);
+
+                    // 触发按钮点击和表单事件
+                    await this.triggerEvents(tab, 1500); // 使用现有方法触发事件
+
+
+                    // 检查是否存在我们的标识符
+                    const hasIdentifier = await tab.evaluate((identifier) => {
+                        // 检查是否有元素的任何属性包含我们的标识符
+                        const allElements = document.querySelectorAll('*');
+                        for (const element of allElements) {
+                            const attributes = element.attributes;
+                            for (let i = 0; i < attributes.length; i++) {
+                                if (attributes[i].value.includes(identifier)) {
+                                    return { 
+                                        found: true, 
+                                        sink: 'element.attribute', 
+                                        attribute: attributes[i].name,
+                                        value: attributes[i].value
+                                    };
+                                }
+                            }
+                        }
+                        
+                        // 检查document.documentElement的所有属性
+                        const docAttributes = document.documentElement.attributes;
+                        for (let i = 0; i < docAttributes.length; i++) {
+                            if (docAttributes[i].value.includes(identifier)) {
+                                return { 
+                                    found: true, 
+                                    sink: 'document.documentElement', 
+                                    attribute: docAttributes[i].name,
+                                    value: docAttributes[i].value
+                                };
+                            }
+                        }
+                        
+                        return { found: false };
+                    }, this.identifier);
+
+                    if (hasIdentifier.result.value.found || docAttributes.result.value.found ) {
+                        const report = createReport({
+                            vulnid: this.vulnid,
+                            taskid: this.taskid,
+                            url: this.url,
+                            param: 'form_input', // 标记为表单输入
+                            payload: payload,
+                            sink: hasIdentifier.sink,
+                            category: sink.category,
+                            severity: this.getSeverity(sink.category),
+                            details: `DOM XSS found via form filling with payload '${payload}'. Executed in '${hasIdentifier.sink}' sink.`
+                        });
+                        this.alert(report);
+                        this.vulnerabilityFound = true;
+                        break;
+                    }
+                }
+
+                console.log('表单填充检测完成');
+            } catch (error) {
+                console.error('表单填充检测出错:', error);
+            }
+        }
+
+                
         /**
          * 监控 jQuery 相关操作
          */
@@ -920,6 +1039,8 @@
             if (!value || typeof value !== 'string') {
                 return;
             }
+            // 新增: 简单过滤（e.g., 忽略已知安全模式）
+            if (value.includes('trusted-source') || !this.isPotentialXSSPayload(value)) return;
             
             // 检查值是否包含潜在的 XSS 载荷
             if (this.isPotentialXSSPayload(value)) {

@@ -1,7 +1,8 @@
-const HeadlessChrome = require('./lib/Browser.js');
-const DOMXSSDetector = require('./dom_xss_detector_component.js');
+const HeadlessChrome = require('./lib/Browser.js'); 
+const DOMXSSScanner = require('./plugins/dom_xss_scanner.js');
 
 async function runTest() {
+
     // 初始化浏览器
     const browser = new HeadlessChrome({
         headless: false,  // 设置为 true 可以在后台运行
@@ -15,46 +16,42 @@ async function runTest() {
             ]
         }
     });
-    
+
     await browser.init();
-    
     // 配置测试参数
-    const testUrl = "http://127.0.0.1:5500/dom_xss_test.html?name=<script>alert(1)</script>&code=alert(2)&script=alert(3)&redirect=javascript:alert(4)&store=<img src=x onerror=alert(5)>";
-    
+    const testUrl = "http://192.168.166.2/pikachu/vul/xss/xss_dom.php";
+
     const core = {
         browser: browser,
         scheme: "http",
         url: testUrl,
-        headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        },
+        headers: [{ name: "User-Agent", value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36" }],
         method: "GET",
         postData: "",
         taskid: 0,
         hostid: "test",
-        variations: null,
-        isFile: false,
-        filename: "",
-        fileContent: "",
+        variations: { length: 0, setValue() {}, toString() {} }, // 简化，无需真实变体
+    
         __call: {
-            send: function(message) {
+            send: function (message) {
                 console.log("检测到漏洞:", JSON.stringify(message, null, 2));
             }
         }
     };
     
+
     // 创建 DOM XSS 检测器实例
-    const detector = new DOMXSSDetector(core);
-    
-    // 运行检测
-    await detector.run();
-    
-    // 关闭浏览器
+    const scanner = new DOMXSSScanner(core);
+
+    // 整个检测流程会包含：被动扫描 + 不发包表单检测 + 主动验证
+    await scanner.startTesting();
+
+
     await browser.close();
-    
     console.log("测试完成");
+    
 }
 
-runTest().catch(error => {
-    console.error("测试出错:", error);
-});
+runTest().catch(err => console.error("测试出错:", err));
+
+

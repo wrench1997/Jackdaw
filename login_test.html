@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通用登录测试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"], input[type="url"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .auth-section {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .captcha-container {
+            margin-top: 10px;
+        }
+        .captcha-image {
+            max-width: 200px;
+            max-height: 80px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+            display: none;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>通用登录测试工具</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="basic">基本设置</div>
+            <div class="tab" data-tab="auth">认证设置</div>
+            <div class="tab" data-tab="captcha">验证码设置</div>
+            <div class="tab" data-tab="headers">请求头设置</div>
+            <div class="tab" data-tab="response">响应处理</div>
+        </div>
+        
+        <div class="tab-content active" id="basic-tab">
+            <div class="form-group">
+                <label for="target-url">目标登录URL</label>
+                <input type="url" id="target-url" placeholder="https://example.com/login" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="method">请求方法</label>
+                <select id="method">
+                    <option value="POST">POST</option>
+                    <option value="GET">GET</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="content-type">内容类型</label>
+                <select id="content-type">
+                    <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                    <option value="application/json">application/json</option>
+                    <option value="multipart/form-data">multipart/form-data</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="username-field">用户名字段名</label>
+                <input type="text" id="username-field" placeholder="username" value="userName">
+            </div>
+            
+            <div class="form-group">
+                <label for="password-field">密码字段名</label>
+                <input type="text" id="password-field" placeholder="password" value="password">
+            </div>
+            
+            <div class="form-group">
+                <label for="username-value">用户名</label>
+                <input type="text" id="username-value" placeholder="输入用户名" value="security">
+            </div>
+            
+            <div class="form-group">
+                <label for="password-value">密码</label>
+                <input type="password" id="password-value" placeholder="输入密码" value="security">
+            </div>
+            
+            <div class="form-group">
+                <label for="additional-params">额外参数 (JSON格式)</label>
+                <textarea id="additional-params" rows="4" placeholder='{"remember": true, "redirect": "/dashboard"}'></textarea>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="auth-tab">
+            <div class="form-group">
+                <label for="auth-type">认证类型</label>
+                <select id="auth-type">
+                    <option value="none">无认证</option>
+                    <option value="cookie">Cookie认证</option>
+                    <option value="session">Session认证</option>
+                    <option value="digest">Digest认证</option>
+                    <option value="basic">Basic认证</option>
+                    <option value="token">Token认证</option>
+                </select>
+            </div>
+            
+            <div id="cookie-auth" class="auth-section">
+                <div class="form-group">
+                    <label for="cookie-name">Cookie名称</label>
+                    <input type="text" id="cookie-name" placeholder="sessionid">
+                </div>
+                <div class="form-group">
+                    <label for="cookie-value">Cookie值</label>
+                    <input type="text" id="cookie-value" placeholder="可选，如果已知">
+                </div>
+                <div class="form-group">
+                    <label for="cookie-domain">Cookie域</label>
+                    <input type="text" id="cookie-domain" placeholder="example.com">
+                </div>
+            </div>
+            
+            <div id="session-auth" class="auth-section">
+                <div class="form-group">
+                    <label for="session-name">Session名称</label>
+                    <input type="text" id="session-name" placeholder="PHPSESSID">
+                </div>
+                <div class="form-group">
+                    <label for="session-value">Session值</label>
+                    <input type="text" id="session-value" placeholder="可选，如果已知">
+                </div>
+            </div>
+            
+            <div id="digest-auth" class="auth-section">
+                <div class="form-group">
+                    <label for="digest-username">用户名</label>
+                    <input type="text" id="digest-username">
+                </div>
+                <div class="form-group">
+                    <label for="digest-password">密码</label>
+                    <input type="password" id="digest-password">
+                </div>
+                <div class="form-group">
+                    <label for="digest-realm">Realm</label>
+                    <input type="text" id="digest-realm" placeholder="可选">
+                </div>
+                <div class="form-group">
+                    <label for="digest-nonce">Nonce</label>
+                    <input type="text" id="digest-nonce" placeholder="可选">
+                </div>
+            </div>
+            
+            <div id="basic-auth" class="auth-section">
+                <div class="form-group">
+                    <label for="basic-username">用户名</label>
+                    <input type="text" id="basic-username">
+                </div>
+                <div class="form-group">
+                    <label for="basic-password">密码</label>
+                    <input type="password" id="basic-password">
+                </div>
+            </div>
+            
+            <div id="token-auth" class="auth-section">
+                <div class="form-group">
+                    <label for="token-type">Token类型</label>
+                    <select id="token-type">
+                        <option value="Bearer">Bearer</option>
+                        <option value="JWT">JWT</option>
+                        <option value="Custom">自定义</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="token-value">Token值</label>
+                    <input type="text" id="token-value">
+                </div>
+                <div class="form-group">
+                    <label for="token-header">Token请求头名称</label>
+                    <input type="text" id="token-header" value="Authorization">
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="captcha-tab">
+            <div class="form-group">
+                <label for="has-captcha">是否有验证码</label>
+                <select id="has-captcha">
+                    <option value="no">否</option>
+                    <option value="yes">是</option>
+                </select>
+            </div>
+            
+            <div id="captcha-settings" style="display: none;">
+                <div class="form-group">
+                    <label for="captcha-url">验证码图片URL</label>
+                    <input type="url" id="captcha-url" placeholder="https://example.com/captcha.php">
+                </div>
+                
+                <div class="form-group">
+                    <label for="captcha-field">验证码字段名</label>
+                    <input type="text" id="captcha-field" placeholder="captcha" value="captcha">
+                </div>
+                
+                <div class="captcha-container">
+                    <button id="load-captcha">加载验证码</button>
+                    <div>
+                        <img id="captcha-image" class="captcha-image" src="" alt="验证码将显示在这里">
+                    </div>
+                    <div class="form-group">
+                        <label for="captcha-value">验证码值</label>
+                        <input type="text" id="captcha-value" placeholder="输入验证码">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="headers-tab">
+            <div class="form-group">
+                <label for="custom-headers">自定义请求头 (JSON格式)</label>
+                <textarea id="custom-headers" rows="6" placeholder='{"User-Agent": "Mozilla/5.0", "Referer": "https://example.com/"}'></textarea>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="response-tab">
+            <div class="form-group">
+                <label for="success-indicator">登录成功指示器</label>
+                <input type="text" id="success-indicator" placeholder="success|登录成功|welcome">
+            </div>
+            
+            <div class="form-group">
+                <label for="failure-indicator">登录失败指示器</label>
+                <input type="text" id="failure-indicator" placeholder="failed|错误|invalid">
+            </div>
+            
+            <div class="form-group">
+                <label for="redirect-url">成功后重定向URL</label>
+                <input type="url" id="redirect-url" placeholder="https://example.com/dashboard">
+            </div>
+            
+            <div class="form-group">
+                <label for="extract-cookies">提取Cookie</label>
+                <select id="extract-cookies">
+                    <option value="yes">是</option>
+                    <option value="no">否</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button id="test-login">测试登录</button>
+            <button id="save-config" style="margin-left: 10px; background-color: #2196F3;">保存配置</button>
+            <button id="load-config" style="margin-left: 10px; background-color: #ff9800;">加载配置</button>
+        </div>
+        
+        <div id="result" class="result">
+            <h3>测试结果</h3>
+            <pre id="result-content"></pre>
+        </div>
+    </div>
+
+    <script src="login-module.js"></script>
+</body>
+</html>

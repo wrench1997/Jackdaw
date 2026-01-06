@@ -148,7 +148,7 @@ function getServer() {
     return server;
 }
 
-async function main() {
+async function server() {
     if (cluster.isPrimary) {
         cluster.schedulingPolicy = cluster.SCHED_RR; // 指定调度策略为轮询加权
         console.log(`Primary ${process.pid} is running`);
@@ -317,4 +317,143 @@ async function main() {
     }
 }
 
-main();
+
+
+// 在文件顶部添加 fs 模块引入
+const fs = require('fs');
+const path = require('path');
+
+// 修改 main 函数中的 CLI 模式部分
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    if (args.length > 0) {
+        // CLI 模式：从JSON文件读取配置
+        (async () => {
+            const configFile = args[0];
+            
+            if (!fs.existsSync(configFile)) {
+                console.error(`配置文件 ${configFile} 不存在!`);
+                process.exit(1);
+            }
+            
+            console.log(`正在从配置文件 ${configFile} 加载扫描参数...`);
+            
+            try {
+                // 读取JSON配置文件
+                const configData = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+                
+                // 提取配置信息
+                const url = configData.url || '';
+                const method = (configData.method || 'GET').toUpperCase();
+                const postData = configData.postData || null;
+                const headers = configData.headers || {};
+                const outputFile = configData.outputFile || 'scan_results.json';
+                
+                if (!url) {
+                    console.error('配置文件中缺少必要的URL参数!');
+                    process.exit(1);
+                }
+                
+                console.log("扫描配置信息:");
+                console.log("URL:", url);
+                console.log("METHOD:", method);
+                console.log("HEADERS:", JSON.stringify(headers, null, 2));
+                console.log("POSTDATA:", postData);
+                console.log("输出文件:", outputFile);
+                
+                // 创建结果数组用于存储漏洞信息
+                const scanResults = [];
+                
+                const HeadlessChrome = require('./lib/Browser.js');
+                const { emtryParams, urlencodedParams, urlGetParams } = require('./core/core.js');
+                const path = require('path');
+                
+                const directoryPath = path.join(__dirname, '/plugins');
+                const files = fs.readdirSync(directoryPath);
+                
+                const browser = new HeadlessChrome({
+                    headless: false,
+                    chrome: {
+                        flags: [
+                            "--disable-web-security",
+                            "--no-sandbox=true",
+                            "--disable-xss-auditor=true",
+                            "--disable-gpu",
+                            "--disable-dev-shm-usage"
+                        ]
+                    }
+                });
+                
+                await browser.init();
+                
+                let variations = null;
+                if (postData && method === "POST") {
+                    variations = new urlencodedParams(postData);
+                } else if (method === "GET") {
+                    variations = new urlGetParams(url);
+                } else {
+                    variations = new emtryParams();
+                }
+                
+                // 创建一个自定义的 process 对象来捕获漏洞信息
+                const customProcess = {
+                    send: function(message) {
+                        if (message && message.Report) {
+                            console.log("发现漏洞:", message.Report.fields.vulnname ? message.Report.fields.vulnname.stringValue : "未知漏洞");
+                            scanResults.push(message.Report);
+                        }
+                    }
+                };
+                
+                const CL = {
+                    browser: browser,
+                    scheme: url.startsWith("https") ? "https" : "http",
+                    url: url,
+                    headers: headers,
+                    method: method,
+                    postData: postData,
+                    __call: customProcess,
+                    taskid: "CLI",
+                    targetid: "CLI",
+                    hostid: "CLI-MODE",
+                    variations: variations,
+                    isFile: false,
+                    filename: "",
+                    fileContent: "",
+                };
+                
+                // 加载全部插件执行扫描
+                console.log("加载插件目录:", directoryPath);
+                const testingPromises = [];
+                for (const file of files) {
+                    if (path.extname(file) === ".js") {
+                        const module = require(path.join(directoryPath, file));
+                        const scriptObj = new module(CL);
+                        if (typeof scriptObj.startTesting === "function") {
+                            console.log(`执行插件: ${file}`);
+                            testingPromises.push(scriptObj.startTesting());
+                        }
+                    }
+                }
+                await Promise.all(testingPromises);
+                await browser.close(true);
+                
+                // 将结果写入输出文件
+                fs.writeFileSync(outputFile, JSON.stringify({
+                    scanTime: new Date().toISOString(),
+                    target: url,
+                    method: method,
+                    vulnerabilities: scanResults
+                }, null, 2));
+                
+                console.log(`扫描完成。结果已保存到 ${outputFile}`);
+                process.exit(0);
+            } catch (error) {
+                console.error("扫描过程中出错:", error);
+                process.exit(1);
+            }
+        })();
+    } else {
+        server();
+    }
+}

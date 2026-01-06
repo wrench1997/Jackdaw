@@ -30,57 +30,6 @@ async function isWebsiteAccessible(url, timeout = 5000) {
   }
 
 
-  /**
- * 带有限流和重试机制的请求函数
- * @param {string} url - 请求URL
- * @param {Object} options - 请求选项
- * @param {number} maxRetries - 最大重试次数
- * @param {number} retryDelay - 重试延迟(毫秒)
- * @return {Promise<Object>} - 响应结果
- */
-async function requestWithRetry(url, options = {}, maxRetries = 3, retryDelay = 1000) {
-    // 首先检查网站是否可访问
-    const isAccessible = await isWebsiteAccessible(url);
-    if (!isAccessible) {
-      console.log(`网站 ${url} 不可访问，跳过请求`);
-      return null;
-    }
-    
-    let lastError;
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        const job = new browerHttpJob(this.browser);
-        job.url = url;
-        job.method = options.method || "GET";
-        
-        // 添加请求头
-        if (options.headers) {
-          for (const [name, value] of Object.entries(options.headers)) {
-            job.addHeader(name, value);
-          }
-        }
-        
-        // 设置POST数据
-        if (options.method === "POST" && options.postData) {
-          job.postData = options.postData;
-        }
-        
-        const response = await job.execute();
-        return response;
-      } catch (error) {
-        lastError = error;
-        console.warn(`请求失败(${i+1}/${maxRetries}): ${url}`, error.message);
-        
-        if (i < maxRetries - 1) {
-          // 等待一段时间后重试
-          await sleep(retryDelay);
-        }
-      }
-    }
-    
-    throw lastError;
-  }
-
 
 
 class DOMXSSDetector extends CoreLayer {
@@ -164,6 +113,8 @@ class DOMXSSDetector extends CoreLayer {
             
             // JavaScript执行类payload
             js: [
+                `"><svg/onload=document.documentElement.setAttribute('data-xss-found','${this.identifier}')>`,
+                `"><img/src/onerror=document.documentElement.setAttribute('data-xss-found','${this.identifier}')>`
                 `document.documentElement.setAttribute('data-xss-found','${this.identifier}')`,
                 `(function(){document.documentElement.setAttribute('data-xss-found','${this.identifier}')})()`,
                 `setTimeout(function(){document.documentElement.setAttribute('data-xss-found','${this.identifier}')},0)`
@@ -178,7 +129,10 @@ class DOMXSSDetector extends CoreLayer {
             // 事件处理类payload
             event: [
                 `x" onload="document.documentElement.setAttribute('data-xss-found','${this.identifier}')" "`,
-                `x" onclick="document.documentElement.setAttribute('data-xss-found','${this.identifier}')" "`
+                `x" onclick="document.documentElement.setAttribute('data-xss-found','${this.identifier}')" "`,
+                `"><svg/onload=document.documentElement.setAttribute('data-xss-found','${this.identifier}')>`,
+                `"><img/src/onerror=document.documentElement.setAttribute('data-xss-found','${this.identifier}')>`
+    
             ]
         };
     }
@@ -439,6 +393,44 @@ class DOMXSSDetector extends CoreLayer {
         // 读取DOM XSS检测器脚本
         const detectorScript = fs.readFileSync(path.join(__dirname, './dom_xss_detector.js'), 'utf8');
         
+
+
+        const unifiedDetector = `
+        (function(){
+        const flag = '${this.identifier}';
+        const mark = () => {
+            document.documentElement.setAttribute('data-xss-found', flag);
+            window.__domxss_found__ = true;
+        };
+        const wrap = (obj, prop) => {
+            const orig = obj[prop];
+            if (typeof orig === 'function') {
+            obj[prop] = function(...args){
+                try{
+                if (typeof args[0] === 'string' && /<|script|onerror|onload|javascript:/.test(args[0])){
+                    mark();
+                }
+                }catch(e){}
+                return orig.apply(this, args);
+            };
+            }
+        };
+        wrap(window,'eval');
+        wrap(window,'Function');
+        wrap(window,'setTimeout');
+        wrap(window,'setInterval');
+        const desc = Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+        if(desc && desc.set){
+            Object.defineProperty(Element.prototype,'innerHTML',{
+            set:function(v){
+                if(/<|script|onerror|onload|javascript:/.test(v)) mark();
+                return desc.set.call(this,v);
+            },
+            get:desc.get
+            });
+        }
+        })();
+        `;
         // 注入脚本
         await tab.evaluate((script, identifier) => {
             // 创建一个自定义回调函数，用于接收检测结果
@@ -452,7 +444,7 @@ class DOMXSSDetector extends CoreLayer {
             
             // 创建脚本元素并添加到页面
             const scriptElement = document.createElement('script');
-            scriptElement.textContent = script;
+            scriptElement.textContent = script + "\n" + unifiedDetector;
             document.head.appendChild(scriptElement);
         }, detectorScript, this.identifier);
     }
@@ -487,7 +479,6 @@ class DOMXSSDetector extends CoreLayer {
             
             // 注入DOM XSS检测器脚本
             await this.injectDetectorScript(tab);
-   
             
             // 获取检测结果
             const results = await this.getDetectionResults(tab);
