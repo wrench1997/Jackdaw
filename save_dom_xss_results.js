@@ -14,7 +14,7 @@ const config = {
 async function saveDOMXSSResults() {
     console.log('启动浏览器...');
     const browser = await puppeteer.launch({
-        headless: false, // 设为 true 可以在后台运行
+        headless: true, // 设为 true 可以在后台运行
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     

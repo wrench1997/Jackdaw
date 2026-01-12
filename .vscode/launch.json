@@ -38,14 +38,14 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/exec.js",
+            "program": "${workspaceFolder}/glint_meson.js",
             "autoAttachChildProcesses": true,
             "env": {
                 "DEBUG": "HeadlessChrome:events:Network",
                 "HTTP_PROXY": "http://localhost:7890",
                 "HTTPS_PROXY": "http://localhost:7890",
             },
-            "args":["1","2","3"]
+            "args":["scan_config.json"]
         },
         {
             "type": "pwa-node",

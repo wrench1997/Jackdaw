@@ -1,0 +1,32 @@
+{
+  "taskId": 1234,
+  "targets": [
+    {
+      "url": "https://example.com/page1",
+      "method": "GET",
+      "headers": {
+        "User-Agent": "Mozilla/5.0"
+      },
+      "data": "",
+      "hostid": 1
+    },
+    {
+      "url": "https://example.com/api",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "data": "{\"key\":\"value\"}",
+      "hostid": 1
+    }
+  ],
+  "files": [
+    {
+      "url": "https://example.com/document.pdf",
+      "fileName": "document.pdf",
+      "hostid": 1
+    }
+  ],
+  "outputFile": "jackdaw_results_1234.json",
+  "timeout": 3600
+}

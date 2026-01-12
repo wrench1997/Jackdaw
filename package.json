@@ -1,57 +1,49 @@
 {
-  "name": "simple-headless-chrome",
-  "version": "4.3.10",
-  "description": "Headless Chrome abstraction to simplify the interaction with the browser. It may be used for crawling sites, test automation, etc",
+  "name": "jackdaw",
+  "version": "0.0.1",
+  "description": "JackDaw1",
   "main": "glint_meson.js",
-  "scripts": {},
+  "bin": "glint_meson.js",
+  "scripts": {
+    "start": "node glint_meson.js", 
+    "dev": "node glint_meson.js", 
+    "lint": "eslint .",
+    "build:win": "pkg . --targets node18-win-x64 --out-path dist",
+    "build:linux": "pkg . --targets node18-linux-x64 --out-path dist",
+    "build:mac": "pkg . --targets node18-macos-x64 --out-path dist",
+    "build:all": "pkg . --out-path dist"
+  },
   "keywords": [
     "headless",
     "chrome",
-    "chromium",
-    "headless-browser",
-    "phantom-js",
-    "nightmare",
-    "casper",
-    "horseman",
     "crawler",
-    "test-automation",
-    "browser",
-    "node",
-    "browser"
+    "test-automation"
   ],
   "author": "Wrench",
   "engines": {
     "node": ">=4"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.11.4",
     "@grpc/grpc-js": "^1.8.11",
-    "@rollup/plugin-commonjs": "^24.1.0",
-    "@rollup/plugin-node-resolve": "^15.0.2",
-    "async-mutex": "^0.4.0",
-    "axios": "^1.4.0",
-    "babel-polyfill": "^6.26.0",
-    "bluebird": "^3.5.0",
-    "chrome-launcher": "^0.15.1",
-    "chrome-remote-interface": "^0.32.2",
-    "cluster": "^0.7.7",
-    "cssesc": "^1.0.0",
-    "deepmerge": "^1.5.0",
-    "events": "^3.3.0",
-    "grpc": "^1.24.11",
-    "html-to-ast": "^0.0.6",
-    "lodash": "^4.17.21",
-    "mz": "^2.7.0",
-    "net": "^1.0.2",
-    "node-libs-browser": "^2.2.1",
     "puppeteer": "^24.26.1",
-    "undici": "^6.18.1"
+    "lodash": "^4.17.21",
+    "axios": "^1.4.0"
   },
-  "devDependencies": {
-    "node-polyfill-webpack-plugin": "^2.0.1",
-    "rollup": "^3.20.6",
-    "webpack": "^5.82.0",
-    "webpack-cli": "^5.1.1",
-    "webpack-node-externals": "^3.0.0"
+  "pkg": {
+    "assets": [
+      "plugins/**/*.js",
+      "core/**/*.js",
+      "lib/**/*.js",
+      "load/**/*.js",
+      "utils/**/*.js",
+      "mesonrpc/**/*.proto",
+      "dom_xss_detector.js"
+    ],
+    "targets": [
+      "node18-win-x64",
+      "node18-linux-x64",
+      "node18-macos-x64"
+    ],
+    "outputPath": "dist"
   }
 }

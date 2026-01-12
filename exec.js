@@ -81,7 +81,7 @@ async function runChat(mychat) {
  */
 async function startBrowser() {
     const browser = new HeadlessChrome({
-        headless: false,
+        headless: true,
         chrome: {
             flags: [
                 '--disable-web-security',

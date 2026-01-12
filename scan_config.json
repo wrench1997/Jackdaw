@@ -1,11 +1,32 @@
 {
-    "url": "http://example.com/vulnerable-page",
-    "method": "POST",
-    "postData": "username=test&password=test",
-    "headers": {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+  "taskId": 1234,
+  "targets": [
+    {
+      "url": "https://example.com/page1",
+      "method": "GET",
+      "headers": {
+        "User-Agent": "Mozilla/5.0"
+      },
+      "data": "",
+      "hostid": 1
     },
-    "outputFile": "vulnerability_report.json"
+    {
+      "url": "https://example.com/api",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "data": "{\"key\":\"value\"}",
+      "hostid": 1
+    }
+  ],
+  "files": [
+    {
+      "url": "https://example.com/document.pdf",
+      "fileName": "document.pdf",
+      "hostid": 1
+    }
+  ],
+  "outputFile": "jackdaw_results_1234.json",
+  "timeout": 3600
 }

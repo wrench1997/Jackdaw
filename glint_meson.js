@@ -6,13 +6,24 @@ const { emtryParams, urlencodedParams, urlGetParams, urlHelper } = require('./co
 const { taskmanager } = require('./core/taskmanager.js');
 const cluster = require('cluster');
 const { sleep } = require('./core/core.js');
+const fs = require('fs');
+const path = require('path');
+const os = require("os");
 
-const cpuNums = 4
+// 设置最大并发进程数，取CPU核心数和4之间的较小值
+const cpuNums = Math.min(os.cpus().length, 4);
 
 var gWorker = [];
 var workerRecord = [];
 var isCommunicationEnded = false;
 var taskManagers = new taskmanager();
+
+// 用于CLI模式的结果收集
+let cliScanResults = [];
+let cliTaskCompleted = 0;
+let cliTotalTasks = 0;
+let cliOutputFile = '';
+let cliTaskId = 0;
 
 function handleRequest(call, SendJsonRequest) {
     // 获取任务ID和目标ID
@@ -256,7 +267,28 @@ async function server() {
         process.on('message', (msg) => {
             var variations = null;
 
+            // 新增：加载插件并检查requiresFileSupport
+            const pluginRequiresFile = {}; // 存储每个插件的requiresFileSupport
+            for (const file of files) {
+                const filePath = path.join(directoryPath, file);
+                if (path.extname(file) === '.js') {
+                    const module = require(filePath);
+                    pluginRequiresFile[file] = module.requiresFileSupport || false; // 默认false
+                }
+            }
+
+            // 修改：根据插件需求决定是否处理isSiteFile
+            let effectiveIsSiteFile = msg.isSiteFile; // 默认使用消息中的值
             if (msg.isSiteFile) {
+                // 检查是否有任何插件需要文件支持
+                const anyPluginNeedsFile = Object.values(pluginRequiresFile).some(needs => needs === true);
+                if (!anyPluginNeedsFile) {
+                    effectiveIsSiteFile = false; // 如果所有插件都不需要，禁用文件处理
+                    //console.log(`[Worker ${process.pid}] 所有插件都不需要文件支持，跳过isSiteFile处理`);
+                }
+            }
+
+            if (effectiveIsSiteFile) {
                 variations = new emtryParams();
             } else if (msg.postData != undefined && msg.method == "POST") {
                 variations = new urlencodedParams(msg.postData);
@@ -276,7 +308,7 @@ async function server() {
                 targetid: msg.targetid, // 添加targetid
                 hostid: msg.hostid,
                 variations: variations,
-                isFile: msg.isSiteFile,
+                isFile: effectiveIsSiteFile, // 使用effective值
                 filename: msg.siteFile,
                 fileContent: msg.siteFilecontent,
             }
@@ -317,142 +349,300 @@ async function server() {
     }
 }
 
+// CLI模式的多进程扫描实现
+async function runCliScan(configFile) {
+    if (!fs.existsSync(configFile)) {
+        console.error(`配置文件 ${configFile} 不存在!`);
+        process.exit(1);
+    }
+    
+    console.log(`正在从配置文件 ${configFile} 加载扫描参数...`);
+    
+    try {
+        // 读取JSON配置文件
+        const configData = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+        
+        // 提取配置信息
+        const taskId = configData.taskId || Math.floor(Math.random() * 10000);
+        cliTaskId = taskId;
+        const targets = configData.targets || [];
+        const files = configData.files || [];
+        cliOutputFile = configData.outputFile || `jackdaw_results_${taskId}.json`;
+        const timeout = configData.timeout || 3600; // 默认超时时间1小时
+        
+        if (targets.length === 0 && files.length === 0) {
+            console.error('配置文件中缺少必要的targets或files参数!');
+            process.exit(1);
+        }
+        
+        console.log("扫描配置信息:");
+        console.log("任务ID:", taskId);
+        console.log("目标数量:", targets.length);
+        console.log("文件数量:", files.length);
+        console.log("输出文件:", cliOutputFile);
+        console.log("超时时间:", timeout, "秒");
+        console.log(`将使用 ${cpuNums} 个进程并发扫描`);
+        
+        // 初始化结果数组
+        cliScanResults = [];
+        
+        // 获取插件列表
+        const directoryPath = path.join(__dirname, '/plugins');
+        const pluginFiles = fs.readdirSync(directoryPath).filter(file => path.extname(file) === '.js');
+        
+        // 合并targets和files为一个任务列表
+        const allTargets = [
+            ...targets.map(target => ({
+                ...target,
+                isFile: false
+            })),
+            ...files.map(file => ({
+                ...file,
+                isFile: true
+            }))
+        ];
+        
+        // 设置总任务数
+        cliTotalTasks = allTargets.length;
+        cliTaskCompleted = 0;
+        
+        if (cluster.isPrimary) {
+            // 主进程：创建工作进程并分配任务
+            console.log(`主进程 ${process.pid} 启动`);
+            
+            // 设置超时处理
+            const timeoutId = setTimeout(() => {
+                console.log(`扫描超时(${timeout}秒)，正在终止...`);
+                
+                // 将当前结果写入文件
+                fs.writeFileSync(cliOutputFile, JSON.stringify(cliScanResults, null, 2));
+                
+                console.log(`已保存部分结果到 ${cliOutputFile}`);
+                process.exit(1);
+            }, timeout * 1000);
+            
+            // 监听工作进程退出事件
+            cluster.on('exit', (worker, code, signal) => {
+                console.log(`工作进程 ${worker.process.pid} 已完成`);
+                cliTaskCompleted++;
+                
+                // 检查是否所有任务都已完成
+                if (cliTaskCompleted >= cliTotalTasks) {
+                    clearTimeout(timeoutId);
+                    console.log('所有扫描任务已完成，正在保存结果...');
+                    
+                    // 将结果写入输出文件
+                    fs.writeFileSync(cliOutputFile, JSON.stringify(cliScanResults, null, 2));
+                    
+                    console.log(`扫描完成。结果已保存到 ${cliOutputFile}`);
+                    process.exit(0);
+                }
+            });
+            
+            // 监听工作进程消息
+            cluster.on('message', (worker, message) => {
+                if (message && message.type === 'SCAN_RESULT') {
+                    if (message.results && message.results.length > 0) {
+                        console.log(`工作进程 ${worker.process.pid} 发现 ${message.results.length} 个漏洞`);
+                        
+                        // 将结果转换为指定格式
+                        const formattedResults = message.results.map(result => ({
+                            vuln: result.vulnType || "Unknown",
+                            url: result.url || "Unknown",
+                            payload: result.payload || "",
+                            level: result.severity ? result.severity.toLowerCase() : "medium",
+                            hostid: result.hostid || 1
+                        }));
+                        
+                        cliScanResults = cliScanResults.concat(formattedResults);
+                    }
+                } else if (message && message.Report) {
+                    // 处理标准格式的报告
+                    try {
+                        const report = message.Report;
+                        const vulnType = report.fields.vulnname ? report.fields.vulnname.stringValue : "Unknown";
+                        const url = report.fields.url ? report.fields.url.stringValue : "Unknown";
+                        const payload = report.fields.payload ? report.fields.payload.stringValue : "";
+                        const severity = report.fields.severity ? report.fields.severity.stringValue.toLowerCase() : "medium";
+                        const hostid = report.fields.hostid ? parseInt(report.fields.hostid.stringValue) : 1;
+                        
+                        const formattedResult = {
+                            vuln: vulnType,
+                            url: url,
+                            payload: payload,
+                            level: severity,
+                            hostid: hostid
+                        };
+                        
+                        cliScanResults.push(formattedResult);
+                        console.log(`发现漏洞: ${vulnType} - ${severity} - ${url}`);
+                    } catch (error) {
+                        console.error("处理漏洞报告时出错:", error);
+                    }
+                }
+            });
+            
+            // 分配任务给工作进程
+            const targetsPerWorker = Math.ceil(allTargets.length / cpuNums);
+            
+            for (let i = 0; i < cpuNums && i < allTargets.length; i++) {
+                const startIndex = i * targetsPerWorker;
+                const endIndex = Math.min(startIndex + targetsPerWorker, allTargets.length);
+                
+                if (startIndex < allTargets.length) {
+                    const targetGroup = allTargets.slice(startIndex, endIndex);
+                    const worker = cluster.fork();
+                    
+                    worker.send({
+                        type: 'SCAN_TASK',
+                        taskId: taskId,
+                        targets: targetGroup,
+                        plugins: pluginFiles
+                    });
+                    
+                    console.log(`工作进程 ${worker.process.pid} 分配了 ${targetGroup.length} 个目标`);
+                }
+            }
+            
+        } else {
+            // 工作进程：执行分配的扫描任务
+            console.log(`工作进程 ${process.pid} 启动`);
+            
+            process.on('message', async (msg) => {
+                if (msg.type === 'SCAN_TASK') {
+                    const scanResults = [];
+                    
+                    // 创建自定义进程对象来捕获漏洞信息
+                    const customProcess = {
+                        send: function(message) {
+                            if (message && message.Report) {
+                                try {
+                                    const report = message.Report;
+                                    const vulnType = report.fields.vulnname ? report.fields.vulnname.stringValue : "Unknown";
+                                    const url = report.fields.url ? report.fields.url.stringValue : "Unknown";
+                                    const payload = report.fields.payload ? report.fields.payload.stringValue : "";
+                                    const severity = report.fields.severity ? report.fields.severity.stringValue.toLowerCase() : "medium";
+                                    const hostid = report.fields.hostid ? parseInt(report.fields.hostid.stringValue) : 1;
+                                    
+                                    const formattedResult = {
+                                        vulnType: vulnType,
+                                        url: url,
+                                        payload: payload,
+                                        severity: severity,
+                                        hostid: hostid
+                                    };
+                                    
+                                    console.log(`工作进程 ${process.pid} 发现漏洞: ${vulnType}`);
+                                    scanResults.push(formattedResult);
+                                    
+                                    // 立即发送结果到主进程
+                                    process.send({
+                                        type: 'SCAN_RESULT',
+                                        results: [formattedResult]
+                                    });
+                                } catch (error) {
+                                    console.error("处理漏洞报告时出错:", error);
+                                }
+                            }
+                        }
+                    };
+                    
+                    // 初始化浏览器
+                    const browser = new HeadlessChrome({
+                        headless: true,
+                        chrome: {
+                            flags: [
+                                "--disable-web-security",
+                                "--no-sandbox=true",
+                                "--disable-xss-auditor=true",
+                                "--disable-gpu",
+                                "--disable-dev-shm-usage"
+                            ]
+                        }
+                    });
+                    
+                    await browser.init();
+                    
+                    try {
+                        // 处理每个目标
+                        for (const target of msg.targets) {
+                            console.log(`工作进程 ${process.pid} 开始扫描目标: ${target.url || target.fileName}`);
+                            
+                            // 创建参数变量
+                            let variations = null;
+                            if (target.isFile) {
+                                variations = new emtryParams();
+                            } else if (target.data && target.method === "POST") {
+                                variations = new urlencodedParams(target.data);
+                            } else {
+                                variations = new urlGetParams(target.url);
+                            }
+                            
+                            // 创建核心对象
+                            const CL = {
+                                browser: browser,
+                                scheme: target.url && target.url.startsWith("https") ? "https" : "http",
+                                url: target.url || "",
+                                headers: target.headers || {},
+                                method: target.method || "GET",
+                                postData: target.data || "",
+                                __call: customProcess,
+                                taskid: msg.taskId,
+                                targetid: `${msg.taskId}-${process.pid}`,
+                                hostid: target.hostid || 1,
+                                variations: variations,
+                                isFile: target.isFile,
+                                filename: target.isFile ? target.fileName : "",
+                                fileContent: target.isFile ? "" : "",
+                            };
+                            
+                            // 执行所有插件
+                            for (const pluginFile of msg.plugins) {
+                                try {
+                                    const pluginPath = path.join(__dirname, '/plugins', pluginFile);
+                                    const module = require(pluginPath);
+                                    const scriptObj = new module(CL);
+                                    
+                                    if (typeof scriptObj.startTesting === "function") {
+                                        await scriptObj.startTesting();
+                                    }
+                                } catch (pluginError) {
+                                    console.error(`执行插件 ${pluginFile} 失败:`, pluginError);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`工作进程 ${process.pid} 执行出错:`, error);
+                    } finally {
+                        // 关闭浏览器
+                        await browser.close(true);
+                        
+                        // 发送所有结果到主进程
+                        if (scanResults.length > 0) {
+                            process.send({
+                                type: 'SCAN_RESULT',
+                                results: scanResults
+                            });
+                        }
+                        
+                        // 退出工作进程
+                        process.exit(0);
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error("扫描过程中出错:", error);
+        process.exit(1);
+    }
+}
 
-
-// 在文件顶部添加 fs 模块引入
-const fs = require('fs');
-const path = require('path');
-
-// 修改 main 函数中的 CLI 模式部分
+// 主入口
 if (require.main === module) {
     const args = process.argv.slice(2);
     if (args.length > 0) {
-        // CLI 模式：从JSON文件读取配置
-        (async () => {
-            const configFile = args[0];
-            
-            if (!fs.existsSync(configFile)) {
-                console.error(`配置文件 ${configFile} 不存在!`);
-                process.exit(1);
-            }
-            
-            console.log(`正在从配置文件 ${configFile} 加载扫描参数...`);
-            
-            try {
-                // 读取JSON配置文件
-                const configData = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-                
-                // 提取配置信息
-                const url = configData.url || '';
-                const method = (configData.method || 'GET').toUpperCase();
-                const postData = configData.postData || null;
-                const headers = configData.headers || {};
-                const outputFile = configData.outputFile || 'scan_results.json';
-                
-                if (!url) {
-                    console.error('配置文件中缺少必要的URL参数!');
-                    process.exit(1);
-                }
-                
-                console.log("扫描配置信息:");
-                console.log("URL:", url);
-                console.log("METHOD:", method);
-                console.log("HEADERS:", JSON.stringify(headers, null, 2));
-                console.log("POSTDATA:", postData);
-                console.log("输出文件:", outputFile);
-                
-                // 创建结果数组用于存储漏洞信息
-                const scanResults = [];
-                
-                const HeadlessChrome = require('./lib/Browser.js');
-                const { emtryParams, urlencodedParams, urlGetParams } = require('./core/core.js');
-                const path = require('path');
-                
-                const directoryPath = path.join(__dirname, '/plugins');
-                const files = fs.readdirSync(directoryPath);
-                
-                const browser = new HeadlessChrome({
-                    headless: false,
-                    chrome: {
-                        flags: [
-                            "--disable-web-security",
-                            "--no-sandbox=true",
-                            "--disable-xss-auditor=true",
-                            "--disable-gpu",
-                            "--disable-dev-shm-usage"
-                        ]
-                    }
-                });
-                
-                await browser.init();
-                
-                let variations = null;
-                if (postData && method === "POST") {
-                    variations = new urlencodedParams(postData);
-                } else if (method === "GET") {
-                    variations = new urlGetParams(url);
-                } else {
-                    variations = new emtryParams();
-                }
-                
-                // 创建一个自定义的 process 对象来捕获漏洞信息
-                const customProcess = {
-                    send: function(message) {
-                        if (message && message.Report) {
-                            console.log("发现漏洞:", message.Report.fields.vulnname ? message.Report.fields.vulnname.stringValue : "未知漏洞");
-                            scanResults.push(message.Report);
-                        }
-                    }
-                };
-                
-                const CL = {
-                    browser: browser,
-                    scheme: url.startsWith("https") ? "https" : "http",
-                    url: url,
-                    headers: headers,
-                    method: method,
-                    postData: postData,
-                    __call: customProcess,
-                    taskid: "CLI",
-                    targetid: "CLI",
-                    hostid: "CLI-MODE",
-                    variations: variations,
-                    isFile: false,
-                    filename: "",
-                    fileContent: "",
-                };
-                
-                // 加载全部插件执行扫描
-                console.log("加载插件目录:", directoryPath);
-                const testingPromises = [];
-                for (const file of files) {
-                    if (path.extname(file) === ".js") {
-                        const module = require(path.join(directoryPath, file));
-                        const scriptObj = new module(CL);
-                        if (typeof scriptObj.startTesting === "function") {
-                            console.log(`执行插件: ${file}`);
-                            testingPromises.push(scriptObj.startTesting());
-                        }
-                    }
-                }
-                await Promise.all(testingPromises);
-                await browser.close(true);
-                
-                // 将结果写入输出文件
-                fs.writeFileSync(outputFile, JSON.stringify({
-                    scanTime: new Date().toISOString(),
-                    target: url,
-                    method: method,
-                    vulnerabilities: scanResults
-                }, null, 2));
-                
-                console.log(`扫描完成。结果已保存到 ${outputFile}`);
-                process.exit(0);
-            } catch (error) {
-                console.error("扫描过程中出错:", error);
-                process.exit(1);
-            }
-        })();
+        // CLI 模式：从JSON文件读取配置并使用多进程扫描
+        runCliScan(args[0]);
     } else {
         server();
     }

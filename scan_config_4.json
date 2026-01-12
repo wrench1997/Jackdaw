@@ -1,0 +1,1211 @@
+{
+  "files": [],
+  "outputFile": "jackdaw_results.json",
+  "targets": [
+    {
+      "data": "",
+      "headers": {},
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/index.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/burteforce/burteforce.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/burteforce/bf_form.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/burteforce/bf_server.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/burteforce/bf_client.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/burteforce/bf_token.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xsspost/post_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_stored.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_dom.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_dom_x.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xssblind/xss_blind.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_01.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_02.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_03.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_04.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrf.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_id.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_str.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_search.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_x.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_del.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_header/sqli_header_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_b.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_t.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_widebyte.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/rce/rce.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/rce/rce_ping.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/rce/rce_eval.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/fileinclude/fileinclude.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/fileinclude/fi_local.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/fileinclude/fi_remote.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafedownload/unsafedownload.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafedownload/down_nba.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafeupload/upload.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafeupload/clientcheck.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafeupload/servercheck.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafeupload/getimagesize.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/overpermission/op.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/overpermission/op1/op1_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/overpermission/op2/op2_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/dir/dir.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/dir/dir_list.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/infoleak/infoleak.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/infoleak/findabc.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unserilization/unserilization.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unserilization/unser.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xxe/xxe.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xxe/xxe_1.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/urlredirect/unsafere.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/urlredirect/urlredirect.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/ssrf/ssrf.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_curl.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_fgc.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/pkxss/index.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/burteforce/bf_server.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/inc/showvcode.php?1767938363927"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php?message=test\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_stored.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_stored.php?id=5424"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_dom.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/test"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_dom_x.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_dom_x.php?text=test"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_01.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_01.php?message=test\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_02.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_02.php?message=test\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_03.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_03.php?message=test\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xss/xss_04.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xss/xss_04.php?message=test\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php?username=admin\u0026password=password123\u0026submit=Login"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_edit.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_edit.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_edit.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_str.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_str.php?name=admin\u0026submit=%E6%9F%A5%E8%AF%A2"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_search.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_search.php?name=admin\u0026submit=%E6%90%9C%E7%B4%A2"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_x.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_x.php?name=admin\u0026submit=%E6%9F%A5%E8%AF%A2"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php?username=admin\u0026password=password123\u0026submit=Login"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_mem.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_mem.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_iu/sqli_edit.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_del.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_del.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_del.php?id=5424"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_b.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_b.php?name=admin\u0026submit=%E6%9F%A5%E8%AF%A2"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_t.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/sqli/sqli_blind_t.php?name=admin\u0026submit=%E6%9F%A5%E8%AF%A2"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/fileinclude/fi_local.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/fileinclude/fi_local.php?filename=file1.php\u0026submit=Submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/fileinclude/fi_remote.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/fileinclude/fi_remote.php?filename=include%2Ffile1.php\u0026submit=Submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/unsafedownload/down_nba.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/unsafedownload/execdownload.php?filename=kb.png"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/overpermission/op1/op1_login.php",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://192.168.166.2",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/overpermission/op1/op1_mem.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/overpermission/op1/op1_login.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/overpermission/op1/op1_mem.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/dir/dir_list.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/dir/dir_list.php?title=jarheads.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/infoleak/findabc.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/infoleak/findabc.php?username=admin\u0026password=password123\u0026submit=Login"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/infoleak/findabc.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/infoleak/abc.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/infoleak/findabc.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/infoleak/abc.php?logout=1"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/xxe/xxe.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/xxe/xee.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/urlredirect/urlredirect.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/urlredirect/unsafere.php.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/urlredirect/urlredirect.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/urlredirect/urlredirect.php?url=unsafere.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_curl.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_curl.php?url=http://127.0.0.1/pikachu/vul/ssrf/ssrf_info/info1.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_fgc.php"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/ssrf/ssrf_fgc.php?file=http://127.0.0.1/pikachu/vul/ssrf/ssrf_info/info2.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/pkxss/index.php",
+        "referer": "http://192.168.166.2/pikachu",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/pkxss/pkxss_login.php"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_edit.php",
+        "referer": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_login.php",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfget/csrf_get_edit.php?sex=test\u0026phonenum=test\u0026add=test\u0026email=test%40example.com\u0026submit=submit"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post.php?logout=1",
+        "referer": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrfpost/csrf_post_login.php?username=admin\u0026password=password123\u0026submit=Login"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get.php?logout=1",
+        "referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php?username=admin\u0026password=password123\u0026submit=Login"
+    },
+    {
+      "data": "",
+      "headers": {
+        "Referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_edit.php",
+        "referer": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_login.php",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36"
+      },
+      "hostid": 4,
+      "isFile": false,
+      "method": "GET",
+      "url": "http://192.168.166.2/pikachu/vul/csrf/csrftoken/token_get_edit.php?sex=test\u0026phonenum=test\u0026add=test\u0026email=test%40example.com\u0026token=291316960904db7da0757475987\u0026submit=submit"
+    }
+  ],
+  "taskId": 4,
+  "timeout": 120
+}

