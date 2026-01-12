@@ -403,7 +403,8 @@ class DOMXSSScanner extends CoreLayer {
         sink: hasIdentifier.result.value.sink,
         category: sink.category,
         severity: this.getSeverity(sink.category),
-        details: `DOM XSS found via ${source} with payload '${payload}'. Executed in '${hasIdentifier.result.value.sink}' sink. Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`
+        details: `DOM XSS found via ${source} with payload '${payload}'. Executed in '${hasIdentifier.result.value.sink}' sink. Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`,
+        vulnname: "DOM_XSS"  // 新增这一行！设置 vulnType 的值，例如 "DOM_XSS" 或 this.name ("DOM XSS Scanner")
       });
       this.alert(report);
       this.vulnerabilityFound = true;
@@ -543,7 +544,8 @@ class DOMXSSScanner extends CoreLayer {
               sink: point.sink.label,
               category: this.getSinkCategory(point.sink.label),
               severity: point.severity || this.getSeverity(this.getSinkCategory(point.sink.label)),
-              details: `DOM XSS vulnerability found in GET parameter '${sourceParam}'. Source: ${point.source.label}, Sink: ${point.sink.label}, Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`
+              details: `DOM XSS vulnerability found in GET parameter '${sourceParam}'. Source: ${point.source.label}, Sink: ${point.sink.label}, Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`,
+              vulnname: "DOM_XSS" 
             });
             
             this.alert(report);
@@ -630,7 +632,8 @@ class DOMXSSScanner extends CoreLayer {
               sink: point.sink.label,
               category: this.getSinkCategory(point.sink.label),
               severity: point.severity || this.getSeverity(this.getSinkCategory(point.sink.label)),
-              details: `DOM XSS vulnerability found in POST parameter '${this.variations.getKey(i)}'. Source: ${point.source.label}, Sink: ${point.sink.label}, Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`
+              details: `DOM XSS vulnerability found in POST parameter '${this.variations.getKey(i)}'. Source: ${point.source.label}, Sink: ${point.sink.label}, Attribute: ${hasIdentifier.result.value.attribute}, Value: ${hasIdentifier.result.value.value}`,
+              vulnname: "DOM_XSS" 
             });
             
             this.alert(report);
