@@ -418,7 +418,7 @@ async function runCliScan(configFile) {
                 fs.writeFileSync(cliOutputFile, JSON.stringify(cliScanResults, null, 2));
                 
                 console.log(`已保存部分结果到 ${cliOutputFile}`);
-                process.exit(1);
+                process.exit(0);
             }, timeout * 1000);
             
             // 监听工作进程退出事件

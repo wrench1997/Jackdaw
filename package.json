@@ -5,8 +5,8 @@
   "main": "glint_meson.js",
   "bin": "glint_meson.js",
   "scripts": {
-    "start": "node glint_meson.js", 
-    "dev": "node glint_meson.js", 
+    "start": "node glint_meson.js",
+    "dev": "node glint_meson.js",
     "lint": "eslint .",
     "build:win": "pkg . --targets node18-win-x64 --out-path dist",
     "build:linux": "pkg . --targets node18-linux-x64 --out-path dist",
@@ -25,9 +25,18 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.8.11",
-    "puppeteer": "^24.26.1",
+    "axios": "^1.13.6",
+    "bluebird": "^3.7.2",
+    "chrome-launcher": "^1.2.1",
+    "chrome-remote-interface": "^0.34.0",
+    "cssesc": "^3.0.0",
+    "deepmerge": "^4.3.1",
     "lodash": "^4.17.21",
-    "axios": "^1.4.0"
+    "minimist": "^1.2.8",
+    "mz": "^2.7.0",
+    "playwright": "^1.58.2",
+    "puppeteer": "^24.26.1",
+    "react-dropzone": "^15.0.0"
   },
   "pkg": {
     "assets": [

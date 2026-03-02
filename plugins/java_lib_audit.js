@@ -1,6 +1,10 @@
 //java_lib_audit.js
 
-const { CoreLayer, createReport } = require('../core/core.js')
+const { CoreLayer, createReport } = require('../core/core.js');
+const utils = require('../utils/utils.js');
+const synhashModule = require('../utils/jslib-synhash.js');
+const jslibRepo = require('../utils/jslib-repo.js');
+
 
 
 var regexBenchmark = false; // Displays expensive regular expressions. ===> default: FALSE!
@@ -395,123 +399,9 @@ function extractVersionAndMapVulns(data, dataType, repo) {
 }
 
 
-// // **************************************************************************************
-// function alert(comp, version, detection, refs, verifiedBySynHash, merelyOutdated, fileHash, identifiers = undefined) {
-
-//     //    __dbgout('version: ' + version);
-
-//     // WP-specific patch
-//     if (version === '1.12.4-wp')
-//         return false;
-
-//     let friendlyText = "The library's name and version were determined based on the file's " + detection + ". ";
-
-
-//     //trace('ALERT: ' + file.fullPath + '/ version: ' + version);
-
-//     var myflags = [];
-
-//     var compSupported = synhashModule().isComponentSupported(comp);
-//     //trace('bdbg alerting: ' + file.fullPath + '/compSupported?:' + compSupported + '/' + comp + '/' + version + '/verif?:' + verifiedBySynHash + '/onlyOutdated?:' + merelyOutdated);
-//     if (compSupported === true && verifiedBySynHash === true) {
-//         // synhash support for component and matched
-//         //trace('bdbg CONFIDENCE HIGH ' + file.fullPath + ' is version: ' + version);
-//         myflags.push('confidence.100');
-//         myflags.push('verified');
-//         sTmp = '';
-//         if (merelyOutdated !== true)
-//             sTmp = 'and the associated vulnerabilities ';
-//         friendlyText = friendlyText + "Acunetix verified the library version " + sTmp + "with the file's unique syntax fingerprint, which matched the syntax fingerprint expected by Acunetix.";
-//     }
-//     else if (compSupported === true && verifiedBySynHash !== true) {
-//         // synhash support for component but NOT matched
-//         trace('bdbg CONFIDENCE LOW ' + file.fullPath + ' is version: ' + version);
-//         myflags.push('confidence.80');
-//         sTmp = '';
-//         if (merelyOutdated !== true)
-//             sTmp = 'vulnerability ';
-//         friendlyText = friendlyText + "Acunetix performed a syntax analysis of the file and detected functional differences between the file and the original library version. As the file was likely modified on purpose, the confidence level of the " + sTmp + "alert has been lowered.";
-//     }
-//     else if (compSupported === false) {
-//         // NO synhash support for component
-//         //trace('bdbg CONFIDENCE MEDIUM ' + file.fullPath + ' is version: ' + version);
-//         myflags.push('confidence.95');
-//     }
-
-//     var vulntype = 'Vulnerable_Js_Library.xml';
-//     if (merelyOutdated === true) {
-//         __dbgout('bdbg not vulnerable, but outdated');
-//         vulntype = 'Outdated_Js_Library.xml';
-//     }
-
-//     let sNameUI = comp;
-//     if (jslibRepo[sNameUI].name && jslibRepo[sNameUI].name !== "")
-//         sNameUI = jslibRepo[sNameUI].name;
-
-
-//     let detailsObject = {
-//         "url": scriptArg.location.url.toString(),
-//         "name": sNameUI,
-//         "version": version,
-//         "refs": refs,
-//         "detection": friendlyText,
-//     };
-
-//     //__dbgout('--> alert() identifiers: ' + JSON.stringify(identifiers));
-
-//     detailsObject["CVE"] = 'N/A';
-//     detailsObject["summary"] = 'N/A';
-
-//     if (identifiers) {
-//         if (identifiers.CVE)
-//             detailsObject["CVE"] = identifiers.CVE.join(', ');
-
-//         if (identifiers.summary)
-//             detailsObject["summary"] = identifiers.summary;
-//     }
-
-
-//     //fileHash = fileHash;
-//     // option 1: filehash-based merging:
-//     // + entirely content-based (hash; either verbatim or reduced)
-//     // - does not play well with dynamically modified per-page js files (no merging)
-
-//     //fileHash = ax.util.sha1(comp + ':' + version);
-//     //fileHash = ax.util.sha1(comp);
-//     // option 2: aggressive merging:
-//     // + files with different names, contents all merged into one alert as long as comp(/vers) identical
-//     // - different files with same comp/vers result also merged, even if one is 100% synhash and the other 80% (= different file contents)
-//     //   -> loses confidence level, which is not merged
-
-//     fileHash = ax.util.sha1(comp + ':' + version + ':' + JSON.stringify(myflags));
-//     // option 3: outcome-based merging:
-//     // merges files leading to same comp/vers result IF detection mechanism is the same
-//     // + merges dynamically modified js files
-//     // + should otherwise behave the same as content-based, because identical content leads to identical comp+vers+detection
-//     // + avoids losing confidence level by taking it into consideration for merging
-//     // - but: identical comp+vers+detection can be result of different file contents.
-//     // - ...?
-
-//     scanState.addVuln({
-//         location: scriptArg.target.root,
-//         typeId: vulntype,
-//         http: file.http(),
-//         tags: myflags,
-//         details: [detailsObject],
-//         customId: fileHash,
-//         merge: 'details'
-//     });
-// }
 
 // **************************************************************************************
 function fileShouldBeSearched() {
-    /*
-    trace(file.response.msg2);
-    trace(file.response.body.length);
-    trace(getFileExt(file.name));
-    trace(file.response.headerValue('content-type'));
-    */
-
     // only 200
     if (file.response.msg2 != 200) return false;
 
@@ -900,6 +790,6 @@ class classJavaAudits extends CoreLayer {
 
 
 
-
-
 module.exports = classJavaAudits
+module.exports.requiresFileSupport = true;//对于不需要的插件，如dom_xss_scanner
+
